@@ -1,229 +1,194 @@
-# San Anselmo Cooperative Nursery School - Auction Website
+# SACNS Auction Website - Project Scope
 
 ## Project Overview
-A fundraising auction website for the San Anselmo Cooperative Nursery School to run their silent auction online.
+Silent auction fundraiser website for San Anselmo Cooperative Nursery School.
 
 ---
 
-## Core Features
+## Current Status
 
-### 1. User Authentication
-- **Registration requires:**
-  - Email
-  - Password
-  - Username (display name shown to other bidders)
-  - Phone number
-- **Login**: Secure login to place bids and track activity
-- **Profile**: User's info on file for all communications
-- Password reset functionality
+### ✅ Completed
+- [x] Frontend UI with modern design
+- [x] Home page with hero, stats, trending items
+- [x] Auction listing page with grid/list views
+- [x] Item detail page with photo gallery
+- [x] Donate item page (form UI)
+- [x] Login/Register pages
+- [x] Admin dashboard (UI only)
+- [x] Responsive design
+- [x] Accessibility improvements (larger fonts, darker text for seniors)
+- [x] Client-side image compression (browser-image-compression)
+- [x] Railway deployment (frontend live)
+- [x] GitHub repository connected
 
-### 2. Main Dashboard (Post-Login)
-After logging in, users see two main options:
+### 🔄 In Progress
+- [ ] Database setup (PostgreSQL on Railway)
+- [ ] Authentication (NextAuth.js configured, needs DB)
 
-| Option | Description |
-|--------|-------------|
-| 🛒 **Bid on Items** | Browse auction and place bids |
-| 🎁 **Donate an Item** | Submit an item to be auctioned |
+### 📋 To Do
+- [ ] Connect PostgreSQL database
+- [ ] Run database migrations
+- [ ] Test user registration/login
+- [ ] Image upload to Supabase Storage
+- [ ] Generate 1200px + 400px thumbnail versions
+- [ ] Admin approval workflow for donated items
+- [ ] Email notifications (Resend)
+- [ ] Bidding functionality
+- [ ] Payment processing (Stripe)
 
-### 3. Donate an Item (Item Submission)
-Users can contribute items to the auction:
-- **Upload multiple photographs** of the item
-- **Item title** 
-- **Description** of the item
-- **Estimated value** (optional)
-- **Donor information** (auto-filled from logged-in user)
-- Submitted items go to Admin for review/approval before appearing in auction
+---
 
-### 4. Silent Auction (Bidding)
-- Browse auction items with photos and descriptions
-- **Categories**: Filter by type:
-  - Experiences
-  - Gift Cards
-  - Home & Household
-  - Services
-  - Handmade
-  - Art
-  - Food & Dining
-  - Sports
-  - Kids
-  - Other
-  - *(Categories with no items are hidden automatically)*
-- **Search**: Find items by keyword
-- **Watchlist/Favorites**: Save items you're interested in
-- **Featured Items**: Highlighted high-value or special items
-- Place bids on items
-- **Minimum bid increment**: $10 (must bid at least $10 more than current bid)
-- **"Buy Now" option**: Skip bidding and purchase immediately at set price (optional per item)
-- Track bidding status (winning, outbid, etc.)
-- **Single auction end time**: All items end at the same time
-- Auction countdown displayed
-- **Anti-sniping protection**: Extend bidding by **2 minutes** if bid comes in at last second
-- Automatic winner determination when auction closes
-- **Live bid feed**: Show recent bids to create excitement
+## Technical Stack
 
-### 5. Notifications & Emails
-- **Outbid alerts**: Email users immediately when they're outbid
-- **Auction ending reminders**: "24 hours left!" and "1 hour left!" emails
-- **Winner notifications**: Automatic email when auction closes with payment link
-- **Thank you emails to donors**: Acknowledge people who contributed items
-- **Payment confirmation**: Receipt emails for completed payments
-- **Check payment reminders**: Follow-up emails for pending check payments
+| Component | Technology |
+|-----------|------------|
+| Frontend | Next.js 14, React 18, Tailwind CSS 3 |
+| Backend | Next.js API Routes |
+| Database | PostgreSQL (Railway) |
+| ORM | Prisma 5 |
+| Auth | NextAuth.js |
+| Image Storage | Supabase Storage (planned) |
+| Email | Resend (planned) |
+| Payments | Stripe (planned) |
+| Hosting | Railway |
 
-### 6. Payment Processing
+---
 
-#### Option A: Pay with Stripe (Credit/Debit Card)
-- Secure online payment via Stripe integration
-- Immediate payment confirmation
-- Email receipt
+## Image Handling Spec
 
-#### Option B: Pay by Check
-- User selects "Pay by Check" option
-- **Automatic email sent to user containing:**
-  - Total amount owed
-  - **Payable to**: San Anselmo Cooperative Nursery School
-  - **Mail/Drop-off address**: 24 Myrtle Lane, San Anselmo, CA 94960
-  - **Payment deadline**: 14 days after auction ends
-- User marked as "Pending Payment" in the system
-- No immediate charge
+### Upload Flow
+1. User selects image(s)
+2. Client-side compression (already built)
+3. Resize to two versions:
+   - **Full**: 1200px wide, ~300KB
+   - **Thumbnail**: 400px wide, ~30KB
+4. Upload both to Supabase Storage
+5. Store URLs in database
 
-### 7. Admin Dashboard
-- **Item Management:**
-  - Review and approve submitted/donated items
-  - **Add items directly** (for drop-off donations — upload photos, description, donor info on their behalf)
-  - Edit/remove auction items
-  - Set starting bid prices
-  - Set "Buy Now" prices (optional per item)
-  - Mark items as "Featured"
-  - Assign categories to items
-- View all auction items and bids
-- See list of winners after auction closes
-- **Payment tracking:**
-  - ✅ Paid (via Stripe) 
-  - ⏳ Pending (check payments)
-- **Reminders/Notifications:**
-  - List of users who owe check payments
-  - Ability to mark checks as received
-  - Send reminder emails to pending payers
+### Constraints
+- Max 5 photos per item
+- Max file size before compression: 10MB
+- Supported formats: JPG, PNG, WebP
+- Delete originals after resize (don't store)
 
-### 8. Reporting & Analytics (Admin)
-- **Total raised dashboard**: See fundraising progress in real-time
-- **Popular items report**: See what got the most bids
-- **Donor report**: List of who donated what items
-- **Bidder participation**: Who's bidding and how much
-- **Export to CSV/Excel**: Download data for records and thank-you letters
-
-### 9. Item Pickup & Logistics
-- **Pickup location**: San Anselmo Cooperative Nursery School (24 Myrtle Lane, San Anselmo, CA 94960)
-- **Mailing option**: Available for winners who are farther away
-- Configurable pickup times (set by admin)
-- Include pickup/mailing info in winner emails
-
-### 10. Social Sharing
-- Share items on social media (Facebook, etc.)
-- "Check out this item!" shareable links
-
-### 11. Mobile-Friendly Design
-- Fully responsive design for phones and tablets
-- Easy bidding from any device
-- Touch-friendly interface
-
-### 12. Terms & Conditions
-- Legal terms displayed during registration
-- No refunds policy
-- Liability disclaimers
+### Storage Estimate
+- ~200 items × 2 sizes × ~165KB avg = **~66MB total**
+- Well within Supabase free tier (1GB)
 
 ---
 
 ## User Roles
 
-| Role | Capabilities |
-|------|-------------|
-| **Visitor** | Browse items, view auction (no bidding) |
-| **Registered User** | Place bids, donate items, pay for won items |
-| **Admin** | Approve donated items, manage auction, track payments, send reminders, add items directly |
+### Public (Not Logged In)
+- View auction items
+- Browse by category
+- View item details
 
-### Admin Configuration
-- **Multiple admins supported**
-- Admin status is granted by adding email addresses to a predefined list
-- Admins can add items directly on behalf of donors (for drop-off donations where the donor doesn't want to upload themselves)
-- **Initial Admin Emails:**
-  - elainph@gmail.com
-  - Taylor.andreas.elaine@Gmail.com
+### Registered User
+- All public features
+- Place bids
+- Watchlist items
+- Donate items (pending admin approval)
+- View bid history
 
----
+### Admin
+- All user features
+- Approve/reject donated items
+- View all bids
+- Manage auction settings
+- Access admin dashboard
 
-## Design & Branding
-
-### Color Palette
-| Color | Hex | Use |
-|-------|-----|-----|
-| **Primary Green** | `#5B8C5A` | Headers, primary buttons, accents |
-| **Warm Cream** | `#F5F0E8` | Page backgrounds |
-| **Accent Gold** | `#D4A853` | CTAs, highlights, bid buttons |
-| **Dark Text** | `#2C3E2D` | Body text |
-| **White** | `#FFFFFF` | Cards, clean sections |
-
-### Design Vibe
-- Warm & welcoming (not corporate)
-- Natural tones reflecting school's outdoor/nature focus
-- Community-focused, friendly, approachable
-- Clean, modern, mobile-friendly
-- **Pacific Redwood imagery** — subtle background elements or hero images featuring redwood trees
-
-### Typography
-- Friendly, readable fonts (Nunito, Quicksand, or similar)
-- Clear hierarchy for auction items and bids
+### Admin Emails
+- elainph@gmail.com
+- taylor.andreas.elaine@gmail.com
 
 ---
 
-## Tech Stack
-- **Frontend**: Next.js / React
-- **Backend**: Next.js API routes
-- **Authentication**: NextAuth.js (email + password)
-- **Payments**: Stripe
-- **Email Service**: Resend (or SendGrid)
-- **Database**: PostgreSQL (on Railway)
-- **File Storage**: Cloudinary or Railway volume (for uploaded item photos)
-- **Hosting**: Railway
-- **Code Repository**: GitHub
+## Database Schema (Prisma)
+
+### Models
+- **User** - Accounts with email, password, admin flag
+- **Item** - Auction items with title, description, category, status
+- **Photo** - Item photos with URL and order
+- **Bid** - User bids on items
+- **Watchlist** - User saved items
+- **Payment** - Payment records
+- **AuctionSettings** - Global auction configuration
+
+### Item Status Flow
+```
+PENDING → APPROVED → LIVE → SOLD
+              ↓
+          REJECTED
+```
 
 ---
 
-## Configuration Summary
+## Environment Variables Required
 
-| Setting | Value |
-|---------|-------|
-| **Auction end time** | Single end time for all items |
-| **Timezone** | PST (Pacific Standard Time) |
-| **Anti-sniping extension** | 2 minutes |
-| **Minimum bid increment** | $10 |
-| **Starting bid** | Set by admin when approving items |
-| **Check payable to** | San Anselmo Cooperative Nursery School |
-| **Check mail/drop-off** | 24 Myrtle Lane, San Anselmo, CA 94960 |
-| **Check payment deadline** | 14 days after auction ends |
-| **Item pickup** | At school, or mailing for those farther away |
-| **Categories** | Experiences, Gift Cards, Home & Household, Services, Handmade, Art, Food & Dining, Sports, Kids, Other |
-| **Registration fields** | Email, password, username (display name), phone |
-| **Initial admins** | elainph@gmail.com, Taylor.andreas.elaine@Gmail.com |
-
-*All questions answered — scope complete!* ✅
+| Variable | Purpose | Status |
+|----------|---------|--------|
+| `DATABASE_URL` | PostgreSQL connection | ❌ Need to add |
+| `NEXTAUTH_SECRET` | Session encryption | ❌ Need to add |
+| `NEXTAUTH_URL` | App URL for auth | ❌ Need to add |
+| `RESEND_API_KEY` | Email sending | ❌ Need to add |
+| `SUPABASE_URL` | Storage endpoint | ❌ Not set up |
+| `SUPABASE_ANON_KEY` | Storage auth | ❌ Not set up |
+| `STRIPE_SECRET_KEY` | Payments | ❌ Not set up |
 
 ---
 
-## Setup Checklist
+## Next Steps (Priority Order)
 
-- [ ] Create Stripe account for payment processing
-- [ ] Create GitHub repository for code
-- [ ] Deploy to Railway
-- [ ] Set up email service (Resend)
-- [ ] Get logo from school
-- [ ] Configure admin emails in environment variables
+1. **Database Connection**
+   - Add PostgreSQL in Railway
+   - Copy DATABASE_URL to app variables
+   - Add NEXTAUTH_SECRET and NEXTAUTH_URL
+   - Run `prisma migrate deploy`
+
+2. **Test Authentication**
+   - Register a test user
+   - Login flow
+   - Verify admin detection
+
+3. **Image Upload (Supabase)**
+   - Set up Supabase Storage bucket
+   - Implement dual-size generation (1200px + 400px)
+   - Wire up donate form to upload
+
+4. **Complete Donation Flow**
+   - Save items to database
+   - Email admin on new submission
+   - Admin approval UI
+
+5. **Bidding System**
+   - Place bid functionality
+   - Bid validation
+   - Outbid notifications
+
+6. **Payments (Stripe)**
+   - Winner payment flow
+   - Receipt emails
 
 ---
 
-## Contact
-**San Anselmo Cooperative Nursery School**  
-24 Myrtle Lane, San Anselmo, CA 94960  
-Phone: (415) 454-5308  
-Website: [sananselmocoop.org](https://www.sananselmocoop.org/)
+## File Naming Conventions
 
+### Images
+- ✅ `wine-country.jpg`
+- ✅ `kids-art-camp.png`
+- ✅ `spa-day-2024.jpeg`
+- ❌ `Wine Country.JPG` (spaces, uppercase)
+- ❌ `IMG_1234.jpeg` (not descriptive)
+
+---
+
+## Notes
+- Target audience includes seniors - prioritize readability
+- Expect ~100-200 auction items max
+- Both admins and donors can upload items
+- Donors' items require admin approval before going live
+
+---
+
+*Last Updated: December 2024*
