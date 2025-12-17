@@ -1,4 +1,6 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 :root {
   /* Modern Color Palette */
@@ -23,22 +25,6 @@
   
   --background: var(--pearl);
   --foreground: var(--midnight);
-}
-
-@theme inline {
-  --color-midnight: var(--midnight);
-  --color-slate: var(--slate);
-  --color-slate-light: var(--slate-light);
-  --color-silver: var(--silver);
-  --color-pearl: var(--pearl);
-  --color-coral: var(--coral);
-  --color-coral-dark: var(--coral-dark);
-  --color-teal: var(--teal);
-  --color-teal-dark: var(--teal-dark);
-  --color-violet: var(--violet);
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-nunito), system-ui, sans-serif;
 }
 
 * {

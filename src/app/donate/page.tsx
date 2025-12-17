@@ -206,7 +206,7 @@ export default function DonatePage() {
             <div className="space-y-3">
               <Link href="/donate" className="btn-primary w-full block" onClick={() => {
                 setSuccess(false)
-                setFormData({ title: "", description: "", category: "", estimatedValue: "" })
+                setFormData({ title: "", description: "", category: "", estimatedValue: "", donorName: "", donorEmail: "", donorPhone: "" })
                 setPhotos([])
                 setPhotoPreviewUrls([])
               }}>

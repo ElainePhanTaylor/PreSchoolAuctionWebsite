@@ -1,6 +1,18 @@
 import { Resend } from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+// Lazy initialization to avoid build-time errors
+let resend: Resend | null = null
+
+function getResendClient(): Resend | null {
+  if (!process.env.RESEND_API_KEY) {
+    console.warn('RESEND_API_KEY not configured - email sending disabled')
+    return null
+  }
+  if (!resend) {
+    resend = new Resend(process.env.RESEND_API_KEY)
+  }
+  return resend
+}
 
 // Admin emails to notify about new donations
 const ADMIN_EMAILS = [
@@ -21,8 +33,11 @@ export async function sendNewDonationNotification({
   category: string
   estimatedValue?: number
 }) {
+  const client = getResendClient()
+  if (!client) return false
+  
   try {
-    await resend.emails.send({
+    await client.emails.send({
       from: 'SACNS Auction <noreply@yourdomain.com>',
       to: ADMIN_EMAILS,
       subject: `🎁 New Donation Submission: ${itemTitle}`,
@@ -67,8 +82,11 @@ export async function sendDonationConfirmation({
   donorName: string
   itemTitle: string
 }) {
+  const client = getResendClient()
+  if (!client) return false
+  
   try {
-    await resend.emails.send({
+    await client.emails.send({
       from: 'SACNS Auction <noreply@yourdomain.com>',
       to: donorEmail,
       subject: `Thank you for your donation: ${itemTitle}`,
