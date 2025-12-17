@@ -32,6 +32,7 @@ const DEMO_ITEMS = [
     currentBid: 450,
     bids: 8,
     emoji: "🍷",
+    image: "/images/wine.jpg",
     isFeatured: true,
     endsIn: "2 days",
   },
@@ -43,6 +44,7 @@ const DEMO_ITEMS = [
     currentBid: 75,
     bids: 3,
     emoji: "🛒",
+    image: "/images/wholefoods.png",
     isFeatured: false,
     endsIn: "2 days",
   },
@@ -54,6 +56,7 @@ const DEMO_ITEMS = [
     currentBid: 180,
     bids: 5,
     emoji: "🧵",
+    image: "/images/quilt.jpeg",
     isFeatured: true,
     endsIn: "2 days",
   },
@@ -65,6 +68,7 @@ const DEMO_ITEMS = [
     currentBid: 250,
     bids: 6,
     emoji: "📸",
+    image: "/images/portraitsession.png",
     isFeatured: false,
     endsIn: "2 days",
   },
@@ -76,6 +80,7 @@ const DEMO_ITEMS = [
     currentBid: 320,
     bids: 7,
     emoji: "🍝",
+    image: "/images/italian.png",
     isFeatured: true,
     endsIn: "2 days",
   },
@@ -88,6 +93,66 @@ const DEMO_ITEMS = [
     bids: 4,
     emoji: "🎨",
     image: "/images/kidscamp.jpeg",
+    isFeatured: false,
+    endsIn: "2 days",
+  },
+  {
+    id: "7",
+    title: "Pizza Party Package",
+    description: "Pizza party for up to 12 kids with drinks and dessert",
+    category: "FOOD_DINING",
+    currentBid: 85,
+    bids: 6,
+    emoji: "🍕",
+    image: "/images/pizza.png",
+    isFeatured: true,
+    endsIn: "2 days",
+  },
+  {
+    id: "8",
+    title: "Beach House Weekend",
+    description: "Two nights at a beautiful coastal getaway",
+    category: "EXPERIENCES",
+    currentBid: 650,
+    bids: 12,
+    emoji: "🏖️",
+    image: "/images/beachhouse.png",
+    isFeatured: true,
+    endsIn: "2 days",
+  },
+  {
+    id: "9",
+    title: "Spa Day for Two",
+    description: "Relaxing spa treatments for you and a friend",
+    category: "SERVICES",
+    currentBid: 320,
+    bids: 9,
+    emoji: "✨",
+    image: "/images/spa.png",
+    isFeatured: false,
+    endsIn: "2 days",
+  },
+  {
+    id: "10",
+    title: "Art Class Bundle",
+    description: "8 weeks of art classes for kids or adults",
+    category: "KIDS",
+    currentBid: 180,
+    bids: 5,
+    emoji: "🎨",
+    image: "/images/artclass.png",
+    isFeatured: false,
+    endsIn: "2 days",
+  },
+  {
+    id: "11",
+    title: "Gift Card Bundle",
+    description: "Collection of local restaurant and shop gift cards",
+    category: "GIFT_CARDS",
+    currentBid: 120,
+    bids: 3,
+    emoji: "🎁",
+    image: "/images/giftcards.png",
     isFeatured: false,
     endsIn: "2 days",
   },
@@ -140,8 +205,16 @@ export default function AuctionPage() {
       </header>
 
       {/* Hero */}
-      <div className="bg-gradient-to-r from-violet to-coral py-16 px-6">
-        <div className="max-w-4xl mx-auto text-center">
+      <div className="relative py-16 px-6 overflow-hidden">
+        {/* Background Image */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: "url('/images/forestbanner.png')" }}
+        />
+        {/* Dark overlay for text readability */}
+        <div className="absolute inset-0 bg-black/40" />
+        
+        <div className="max-w-4xl mx-auto text-center relative z-10">
           <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-4">
             Browse Auction Items
           </h1>
