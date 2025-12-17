@@ -257,3 +257,46 @@ html {
 ::selection {
   background: rgba(102, 126, 234, 0.3);
 }
+
+/* ============================================
+   ACCESSIBILITY: Larger, darker text for seniors
+   ============================================ */
+
+/* Increase base font size */
+html {
+  font-size: 18px; /* Up from default 16px */
+}
+
+/* Make all small text larger and darker */
+.text-xs {
+  font-size: 0.875rem !important; /* 14px instead of 12px */
+  color: #334155 !important; /* Darker gray */
+}
+
+.text-sm {
+  font-size: 1rem !important; /* 16px instead of 14px */
+  color: #1E293B !important; /* Dark slate */
+}
+
+/* Make muted/light text darker */
+.text-text-muted,
+.text-slate-light,
+.text-silver,
+.text-gray-400,
+.text-gray-500 {
+  color: #475569 !important; /* Medium-dark gray */
+}
+
+/* Ensure good contrast on badges */
+.badge {
+  font-size: 0.875rem; /* Bigger badge text */
+}
+
+/* Larger button text */
+.btn-primary,
+.btn-secondary,
+.btn-coral,
+.btn-outline {
+  font-size: 1.1rem;
+  padding: 1rem 2.25rem;
+}

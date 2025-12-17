@@ -70,17 +70,17 @@ export default function Home() {
               <div className="flex items-center gap-8">
                 <div>
                   <p className="text-3xl font-extrabold text-midnight">50+</p>
-                  <p className="text-silver text-sm font-medium">Unique Items</p>
+                  <p className="text-slate text-base font-semibold">Unique Items</p>
                 </div>
                 <div className="w-px h-12 bg-slate-light/20"></div>
                 <div>
                   <p className="text-3xl font-extrabold text-midnight">$12K</p>
-                  <p className="text-silver text-sm font-medium">Raised Last Year</p>
+                  <p className="text-slate text-base font-semibold">Raised Last Year</p>
                 </div>
                 <div className="w-px h-12 bg-slate-light/20"></div>
                 <div>
                   <p className="text-3xl font-extrabold text-midnight">75</p>
-                  <p className="text-silver text-sm font-medium">Years Strong</p>
+                  <p className="text-slate text-base font-semibold">Years Strong</p>
                 </div>
               </div>
             </div>
