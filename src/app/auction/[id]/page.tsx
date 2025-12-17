@@ -362,9 +362,9 @@ export default function ItemDetailPage() {
       <div className="max-w-6xl mx-auto px-4 py-4">
         <Link 
           href="/auction" 
-          className="inline-flex items-center gap-2 text-text-muted hover:text-primary transition-colors"
+          className="inline-flex items-center gap-3 text-lg font-medium text-primary hover:text-coral bg-primary/10 hover:bg-coral/10 px-5 py-3 rounded-lg transition-colors"
         >
-          <ArrowLeft className="w-4 h-4" />
+          <ArrowLeft className="w-6 h-6" />
           Back to Auction
         </Link>
       </div>
