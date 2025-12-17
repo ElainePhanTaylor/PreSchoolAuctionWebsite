@@ -306,15 +306,14 @@ export default function AuctionPage() {
                 <div className={`relative ${
                   viewMode === "list" ? "w-48 flex-shrink-0" : ""
                 }`}>
-                  <div className={`bg-gradient-to-br from-pearl to-slate-light/20 flex items-center justify-center overflow-hidden ${
+                  <div className={`relative bg-gradient-to-br from-pearl to-slate-light/20 flex items-center justify-center overflow-hidden ${
                     viewMode === "list" ? "h-full" : "aspect-[4/3]"
                   }`}>
                     {item.image ? (
-                      <Image
+                      <img
                         src={item.image}
                         alt={item.title}
-                        fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                        className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
                     ) : (
                       <span className="text-6xl group-hover:scale-110 transition-transform duration-300">
