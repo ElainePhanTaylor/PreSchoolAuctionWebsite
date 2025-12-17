@@ -9,15 +9,15 @@ export default function Home() {
       <header className="fixed top-0 left-0 right-0 z-50">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="card-glass px-6 py-3 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-        <Image
+            <Link href="/" className="flex items-center gap-2">
+              <Image
                 src="/images/IMG_7446.jpeg" 
                 alt="San Anselmo Cooperative Nursery School" 
                 width={140}
                 height={50}
                 className="h-12 w-auto object-contain"
               />
-            </div>
+            </Link>
             <nav className="hidden md:flex items-center gap-8">
               <Link href="/auction" className="text-slate font-semibold hover:text-midnight transition-colors">
                 Browse
@@ -54,7 +54,7 @@ export default function Home() {
                 <span className="block bg-gradient-to-r from-violet via-coral to-teal bg-clip-text text-transparent">
                   Brighter Future
                 </span>
-          </h1>
+              </h1>
               
               <p className="text-xl text-slate mb-8 leading-relaxed max-w-lg">
                 Join our community auction supporting San Anselmo Cooperative Nursery School. 
@@ -97,7 +97,7 @@ export default function Home() {
                 <div 
                   className="absolute inset-0 bg-cover bg-center"
                   style={{
-                    backgroundImage: "url('/images/redwoods.jpg')",
+                    backgroundImage: "url('/images/redwood.png')",
                   }}
                 />
                 {/* Blur and gradient overlay */}
@@ -109,8 +109,8 @@ export default function Home() {
               <div className="relative h-[500px] z-10">
                 {/* Card 1 */}
                 <div className="card absolute top-0 right-0 w-72 p-4 animate-float shadow-xl" style={{ animationDelay: '0s' }}>
-                  <div className="aspect-[4/3] bg-gradient-to-br from-teal/20 to-violet/20 rounded-xl mb-3 flex items-center justify-center">
-                    <span className="text-4xl">🍷</span>
+                  <div className="aspect-[4/3] rounded-xl mb-3 overflow-hidden">
+                    <Image src="/images/wine.png" alt="Wine Country Getaway" width={300} height={225} className="w-full h-full object-cover" />
                   </div>
                   <p className="font-bold text-midnight">Wine Country Getaway</p>
                   <div className="flex items-center justify-between mt-2">
@@ -121,8 +121,8 @@ export default function Home() {
 
                 {/* Card 2 */}
                 <div className="card absolute top-32 left-0 w-64 p-4 animate-float shadow-xl" style={{ animationDelay: '0.5s' }}>
-                  <div className="aspect-[4/3] bg-gradient-to-br from-coral/20 to-violet/20 rounded-xl mb-3 flex items-center justify-center">
-                    <span className="text-4xl">🎨</span>
+                  <div className="aspect-[4/3] rounded-xl mb-3 overflow-hidden">
+                    <Image src="/images/artclass.png" alt="Art Class Bundle" width={300} height={225} className="w-full h-full object-cover" />
                   </div>
                   <p className="font-bold text-midnight">Art Class Bundle</p>
                   <div className="flex items-center justify-between mt-2">
@@ -133,8 +133,8 @@ export default function Home() {
 
                 {/* Card 3 */}
                 <div className="card absolute bottom-0 right-12 w-60 p-4 animate-float shadow-xl" style={{ animationDelay: '1s' }}>
-                  <div className="aspect-[4/3] bg-gradient-to-br from-violet/20 to-teal/20 rounded-xl mb-3 flex items-center justify-center">
-                    <span className="text-4xl">🎁</span>
+                  <div className="aspect-[4/3] rounded-xl mb-3 overflow-hidden">
+                    <Image src="/images/giftcards.png" alt="Gift Card Bundle" width={300} height={225} className="w-full h-full object-cover" />
                   </div>
                   <p className="font-bold text-midnight">Gift Card Bundle</p>
                   <div className="flex items-center justify-between mt-2">
@@ -215,13 +215,13 @@ export default function Home() {
 
           <div className="grid md:grid-cols-3 gap-6">
             {[
-              { emoji: "🏖️", title: "Beach House Weekend", price: 650, bids: 12, category: "Experiences" },
-              { emoji: "🍕", title: "Pizza Party Package", price: 85, bids: 6, category: "Food & Dining" },
-              { emoji: "✨", title: "Spa Day for Two", price: 320, bids: 9, category: "Services" },
+              { image: "/images/beachhouse.png", title: "Beach House Weekend", price: 650, bids: 12, category: "Experiences" },
+              { image: "/images/pizza.png", title: "Pizza Party Package", price: 85, bids: 6, category: "Food & Dining" },
+              { image: "/images/spa.png", title: "Spa Day for Two", price: 320, bids: 9, category: "Services" },
             ].map((item, index) => (
               <Link href={`/auction/${index + 1}`} key={index} className="card p-5 group cursor-pointer">
-                <div className="aspect-[4/3] bg-gradient-to-br from-pearl to-slate-light/10 rounded-xl mb-4 flex items-center justify-center group-hover:scale-[1.02] transition-transform">
-                  <span className="text-6xl">{item.emoji}</span>
+                <div className="aspect-[4/3] rounded-xl mb-4 overflow-hidden group-hover:scale-[1.02] transition-transform">
+                  <Image src={item.image} alt={item.title} width={400} height={300} className="w-full h-full object-cover" />
                 </div>
                 <div className="flex items-center gap-2 mb-2">
                   <span className="badge badge-violet">{item.category}</span>

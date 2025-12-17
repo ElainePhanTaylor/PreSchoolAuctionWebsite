@@ -6,7 +6,7 @@ import { useSession } from "next-auth/react"
 import Image from "next/image"
 import { 
   Search, Heart, Clock, 
-  ChevronDown, Grid, List, TrendingUp, Filter
+  ChevronDown, Grid, List, TrendingUp
 } from "lucide-react"
 
 const CATEGORIES = [
@@ -31,7 +31,7 @@ const DEMO_ITEMS = [
     category: "EXPERIENCES",
     currentBid: 450,
     bids: 8,
-    emoji: "🍷",
+    image: "/images/wine.png",
     isFeatured: true,
     endsIn: "2 days",
   },
@@ -42,7 +42,7 @@ const DEMO_ITEMS = [
     category: "GIFT_CARDS",
     currentBid: 75,
     bids: 3,
-    emoji: "🛒",
+    image: "/images/wholefoods.png",
     isFeatured: false,
     endsIn: "2 days",
   },
@@ -53,7 +53,7 @@ const DEMO_ITEMS = [
     category: "HANDMADE",
     currentBid: 180,
     bids: 5,
-    emoji: "🧵",
+    image: "/images/quilt.jpeg",
     isFeatured: true,
     endsIn: "2 days",
   },
@@ -64,7 +64,7 @@ const DEMO_ITEMS = [
     category: "SERVICES",
     currentBid: 250,
     bids: 6,
-    emoji: "📸",
+    image: "/images/portraitsession.png",
     isFeatured: false,
     endsIn: "2 days",
   },
@@ -75,7 +75,7 @@ const DEMO_ITEMS = [
     category: "FOOD_DINING",
     currentBid: 320,
     bids: 7,
-    emoji: "🍝",
+    image: "/images/italian.png",
     isFeatured: true,
     endsIn: "2 days",
   },
@@ -86,8 +86,74 @@ const DEMO_ITEMS = [
     category: "KIDS",
     currentBid: 200,
     bids: 4,
-    emoji: "🎨",
+    image: "/images/kidscamp.jpeg",
     isFeatured: false,
+    endsIn: "2 days",
+  },
+  {
+    id: "7",
+    title: "Beach House Weekend",
+    description: "Relaxing weekend getaway at a beautiful beach house",
+    category: "EXPERIENCES",
+    currentBid: 650,
+    bids: 12,
+    image: "/images/beachhouse.png",
+    isFeatured: true,
+    endsIn: "2 days",
+  },
+  {
+    id: "8",
+    title: "Pizza Party Package",
+    description: "Pizza party for 10 kids with drinks and dessert",
+    category: "FOOD_DINING",
+    currentBid: 85,
+    bids: 6,
+    image: "/images/pizza.png",
+    isFeatured: false,
+    endsIn: "2 days",
+  },
+  {
+    id: "9",
+    title: "Spa Day for Two",
+    description: "Full spa treatment including massage and facial",
+    category: "SERVICES",
+    currentBid: 320,
+    bids: 9,
+    image: "/images/spa.png",
+    isFeatured: true,
+    endsIn: "2 days",
+  },
+  {
+    id: "10",
+    title: "Art Class Bundle",
+    description: "4 art classes for children at local studio",
+    category: "ART",
+    currentBid: 180,
+    bids: 5,
+    image: "/images/artclass.png",
+    isFeatured: false,
+    endsIn: "2 days",
+  },
+  {
+    id: "11",
+    title: "Gift Card Bundle",
+    description: "Collection of local restaurant and shop gift cards",
+    category: "GIFT_CARDS",
+    currentBid: 120,
+    bids: 3,
+    image: "/images/giftcards.png",
+    isFeatured: false,
+    endsIn: "2 days",
+  },
+  {
+    id: "12",
+    title: "Redwood Forest Adventure",
+    description: "Guided nature hike through Muir Woods with picnic lunch",
+    category: "EXPERIENCES",
+    currentBid: 275,
+    bids: 7,
+    image: "/images/redwood.png",
+    isFeatured: true,
     endsIn: "2 days",
   },
 ]
@@ -107,72 +173,56 @@ export default function AuctionPage() {
 
   return (
     <div className="min-h-screen bg-pearl">
-      {/* Header */}
-      <header className="bg-white/80 backdrop-blur-md border-b border-slate-light/10 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <Image 
-              src="/images/IMG_7446.jpeg" 
-              alt="San Anselmo Cooperative Nursery School" 
-              width={140}
-              height={50}
-              className="h-11 w-auto object-contain"
-            />
-          </Link>
-          <div className="flex items-center gap-4">
-            {session ? (
-              <Link href="/dashboard" className="btn-primary">
-                Dashboard
-              </Link>
-            ) : (
-              <>
-                <Link href="/login" className="text-midnight font-semibold hover:text-violet transition-colors">
-                  Log In
-                </Link>
-                <Link href="/register" className="btn-primary">
-                  Sign Up
-                </Link>
-              </>
-            )}
-          </div>
-        </div>
-      </header>
-
-      {/* Hero */}
-      <div className="bg-gradient-to-r from-violet to-coral py-16 px-6">
-        <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-4">
+      {/* Hero Banner with Forest Background */}
+      <div className="relative h-32 md:h-40 overflow-hidden">
+        <Image 
+          src="/images/forestbanner.png" 
+          alt="Forest background" 
+          fill
+          className="object-cover"
+          priority
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-midnight/70 to-midnight/50" />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <h1 className="text-3xl md:text-4xl font-extrabold text-white drop-shadow-lg">
             Browse Auction Items
           </h1>
-          <p className="text-white/80 text-lg">
-            Discover unique items and experiences. Place your bids and win!
-          </p>
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="bg-white border-b sticky top-[73px] z-40">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex flex-col md:flex-row gap-4">
+      {/* Search Bar - Sticky at Top */}
+      <div className="bg-white/95 backdrop-blur-md border-b border-slate-light/10 sticky top-0 z-50 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 py-3">
+          <div className="flex items-center gap-3">
+            {/* Home Link */}
+            <Link href="/" className="flex-shrink-0">
+              <Image 
+                src="/images/IMG_7446.jpeg" 
+                alt="Home" 
+                width={100}
+                height={40}
+                className="h-9 w-auto object-contain"
+              />
+            </Link>
+
             {/* Search */}
             <div className="relative flex-1">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-silver" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-silver" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search items..."
-                className="input pl-12"
+                className="w-full py-2.5 pl-10 pr-4 border-2 border-slate-light/20 rounded-full text-sm bg-pearl/50 focus:outline-none focus:border-violet focus:bg-white transition-all"
               />
             </div>
 
             {/* Category Filter */}
-            <div className="relative">
-              <Filter className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-silver" />
+            <div className="relative hidden sm:block">
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                className="input pl-12 pr-10 appearance-none cursor-pointer min-w-[200px]"
+                className="py-2.5 pl-4 pr-8 border-2 border-slate-light/20 rounded-full text-sm bg-pearl/50 focus:outline-none focus:border-violet focus:bg-white transition-all appearance-none cursor-pointer min-w-[160px]"
               >
                 {CATEGORIES.map((cat) => (
                   <option key={cat.value} value={cat.value}>
@@ -180,28 +230,61 @@ export default function AuctionPage() {
                   </option>
                 ))}
               </select>
-              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-silver pointer-events-none" />
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-silver pointer-events-none" />
             </div>
 
             {/* View Toggle */}
-            <div className="flex items-center gap-1 bg-pearl rounded-xl p-1">
+            <div className="flex items-center gap-1 bg-pearl rounded-full p-1">
               <button
                 onClick={() => setViewMode("grid")}
-                className={`p-3 rounded-lg transition-all ${
+                className={`p-2 rounded-full transition-all ${
                   viewMode === "grid" ? "bg-white shadow-md text-midnight" : "text-silver hover:text-midnight"
                 }`}
               >
-                <Grid className="w-5 h-5" />
+                <Grid className="w-4 h-4" />
               </button>
               <button
                 onClick={() => setViewMode("list")}
-                className={`p-3 rounded-lg transition-all ${
+                className={`p-2 rounded-full transition-all ${
                   viewMode === "list" ? "bg-white shadow-md text-midnight" : "text-silver hover:text-midnight"
                 }`}
               >
-                <List className="w-5 h-5" />
+                <List className="w-4 h-4" />
               </button>
             </div>
+
+            {/* Auth Links */}
+            <div className="hidden md:flex items-center gap-2">
+              {session ? (
+                <Link href="/dashboard" className="btn-primary text-sm py-2 px-4">
+                  Dashboard
+                </Link>
+              ) : (
+                <>
+                  <Link href="/login" className="text-midnight font-semibold hover:text-violet transition-colors text-sm">
+                    Log In
+                  </Link>
+                  <Link href="/register" className="btn-primary text-sm py-2 px-4">
+                    Sign Up
+                  </Link>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Mobile Category Filter */}
+          <div className="sm:hidden mt-2">
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="w-full py-2.5 pl-4 pr-8 border-2 border-slate-light/20 rounded-full text-sm bg-pearl/50 focus:outline-none focus:border-violet focus:bg-white transition-all appearance-none cursor-pointer"
+            >
+              {CATEGORIES.map((cat) => (
+                <option key={cat.value} value={cat.value}>
+                  {cat.label}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
       </div>
@@ -232,12 +315,16 @@ export default function AuctionPage() {
                 <div className={`relative ${
                   viewMode === "list" ? "w-48 flex-shrink-0" : ""
                 }`}>
-                  <div className={`bg-gradient-to-br from-pearl to-slate-light/20 flex items-center justify-center ${
+                  <div className={`overflow-hidden ${
                     viewMode === "list" ? "h-full" : "aspect-[4/3]"
                   }`}>
-                    <span className="text-6xl group-hover:scale-110 transition-transform duration-300">
-                      {item.emoji}
-                    </span>
+                    <Image 
+                      src={item.image} 
+                      alt={item.title} 
+                      width={400} 
+                      height={300} 
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                    />
                   </div>
                   {item.isFeatured && (
                     <div className="absolute top-3 left-3 badge badge-coral">
