@@ -61,9 +61,9 @@ export default function LoginPage() {
               <Image 
                 src="/images/IMG_7446.jpeg" 
                 alt="San Anselmo Cooperative Nursery School" 
-                width={360}
-                height={140}
-                className="h-32 w-auto object-contain mx-auto"
+                width={180}
+                height={70}
+                className="h-16 w-auto object-contain mx-auto"
               />
             </Link>
             <h1 className="text-3xl font-extrabold text-midnight mb-2">Welcome back</h1>
@@ -90,7 +90,7 @@ export default function LoginPage() {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="input"
+                    className="input pl-12"
                     placeholder="you@example.com"
                     required
                   />
@@ -108,7 +108,7 @@ export default function LoginPage() {
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="input"
+                    className="input pl-12"
                     placeholder="••••••••"
                     required
                   />

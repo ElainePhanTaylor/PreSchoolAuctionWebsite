@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState } from "react"
 import Link from "next/link"
 import { useSession } from "next-auth/react"
 import Image from "next/image"
@@ -32,7 +32,6 @@ const DEMO_ITEMS = [
     currentBid: 450,
     bids: 8,
     emoji: "🍷",
-    image: "/images/wine.jpg",
     isFeatured: true,
     endsIn: "2 days",
   },
@@ -44,7 +43,6 @@ const DEMO_ITEMS = [
     currentBid: 75,
     bids: 3,
     emoji: "🛒",
-    image: "/images/wholefoods.png",
     isFeatured: false,
     endsIn: "2 days",
   },
@@ -56,7 +54,6 @@ const DEMO_ITEMS = [
     currentBid: 180,
     bids: 5,
     emoji: "🧵",
-    image: "/images/quilt.jpeg",
     isFeatured: true,
     endsIn: "2 days",
   },
@@ -68,7 +65,6 @@ const DEMO_ITEMS = [
     currentBid: 250,
     bids: 6,
     emoji: "📸",
-    image: "/images/portraitsession.png",
     isFeatured: false,
     endsIn: "2 days",
   },
@@ -80,7 +76,6 @@ const DEMO_ITEMS = [
     currentBid: 320,
     bids: 7,
     emoji: "🍝",
-    image: "/images/italian.png",
     isFeatured: true,
     endsIn: "2 days",
   },
@@ -92,67 +87,6 @@ const DEMO_ITEMS = [
     currentBid: 200,
     bids: 4,
     emoji: "🎨",
-    image: "/images/kidscamp.jpeg",
-    isFeatured: false,
-    endsIn: "2 days",
-  },
-  {
-    id: "7",
-    title: "Pizza Party Package",
-    description: "Pizza party for up to 12 kids with drinks and dessert",
-    category: "FOOD_DINING",
-    currentBid: 85,
-    bids: 6,
-    emoji: "🍕",
-    image: "/images/pizza.png",
-    isFeatured: true,
-    endsIn: "2 days",
-  },
-  {
-    id: "8",
-    title: "Beach House Weekend",
-    description: "Two nights at a beautiful coastal getaway",
-    category: "EXPERIENCES",
-    currentBid: 650,
-    bids: 12,
-    emoji: "🏖️",
-    image: "/images/beachhouse.png",
-    isFeatured: true,
-    endsIn: "2 days",
-  },
-  {
-    id: "9",
-    title: "Spa Day for Two",
-    description: "Relaxing spa treatments for you and a friend",
-    category: "SERVICES",
-    currentBid: 320,
-    bids: 9,
-    emoji: "✨",
-    image: "/images/spa.png",
-    isFeatured: false,
-    endsIn: "2 days",
-  },
-  {
-    id: "10",
-    title: "Art Class Bundle",
-    description: "8 weeks of art classes for kids or adults",
-    category: "KIDS",
-    currentBid: 180,
-    bids: 5,
-    emoji: "🎨",
-    image: "/images/artclass.png",
-    isFeatured: false,
-    endsIn: "2 days",
-  },
-  {
-    id: "11",
-    title: "Gift Card Bundle",
-    description: "Collection of local restaurant and shop gift cards",
-    category: "GIFT_CARDS",
-    currentBid: 120,
-    bids: 3,
-    emoji: "🎁",
-    image: "/images/giftcards.png",
     isFeatured: false,
     endsIn: "2 days",
   },
@@ -163,23 +97,6 @@ export default function AuctionPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("ALL")
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
-  const [headerSticky, setHeaderSticky] = useState(true)
-  const heroRef = useRef<HTMLDivElement>(null)
-
-  // Handle scroll - make header scroll away once banner is gone
-  useEffect(() => {
-    const handleScroll = () => {
-      if (heroRef.current) {
-        const heroBottom = heroRef.current.offsetTop + heroRef.current.offsetHeight
-        const scrollY = window.scrollY
-        // Once we've scrolled past the hero, header should scroll with page
-        setHeaderSticky(scrollY < heroBottom - 80)
-      }
-    }
-
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
 
   const filteredItems = DEMO_ITEMS.filter((item) => {
     const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -191,7 +108,7 @@ export default function AuctionPage() {
   return (
     <div className="min-h-screen bg-pearl">
       {/* Header */}
-      <header className={`bg-white/80 backdrop-blur-md border-b border-slate-light/10 z-50 transition-all ${headerSticky ? 'sticky top-0' : 'relative'}`}>
+      <header className="bg-white/80 backdrop-blur-md border-b border-slate-light/10 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
             <Image 
@@ -199,7 +116,7 @@ export default function AuctionPage() {
               alt="San Anselmo Cooperative Nursery School" 
               width={140}
               height={50}
-              className="h-12 w-auto object-contain"
+              className="h-11 w-auto object-contain"
             />
           </Link>
           <div className="flex items-center gap-4">
@@ -222,33 +139,19 @@ export default function AuctionPage() {
       </header>
 
       {/* Hero */}
-      <div ref={heroRef} className="relative py-16 px-6 overflow-hidden">
-        {/* Background Image */}
-        <div 
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: "url('/images/forestbanner.png')" }}
-        />
-        {/* Dark overlay for text readability */}
-        <div className="absolute inset-0 bg-black/40" />
-        
-        <div className="max-w-4xl mx-auto text-center relative z-10">
-          <h1 
-            className="text-4xl md:text-5xl font-extrabold text-white mb-4"
-            style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8), -1px -1px 2px rgba(0,0,0,0.6)' }}
-          >
+      <div className="bg-gradient-to-r from-violet to-coral py-16 px-6">
+        <div className="max-w-4xl mx-auto text-center">
+          <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-4">
             Browse Auction Items
           </h1>
-          <p 
-            className="text-white text-xl md:text-2xl font-semibold"
-            style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8), -1px -1px 2px rgba(0,0,0,0.6)' }}
-          >
+          <p className="text-white/80 text-lg">
             Discover unique items and experiences. Place your bids and win!
           </p>
         </div>
       </div>
 
       {/* Filters */}
-      <div className={`bg-white border-b sticky z-40 transition-all ${headerSticky ? 'top-[73px]' : 'top-0'}`}>
+      <div className="bg-white border-b sticky top-[73px] z-40">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex flex-col md:flex-row gap-4">
             {/* Search */}
@@ -259,7 +162,7 @@ export default function AuctionPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search items..."
-                className="input"
+                className="input pl-12"
               />
             </div>
 
@@ -269,7 +172,7 @@ export default function AuctionPage() {
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                className="input pr-10 appearance-none cursor-pointer min-w-[200px]"
+                className="input pl-12 pr-10 appearance-none cursor-pointer min-w-[200px]"
               >
                 {CATEGORIES.map((cat) => (
                   <option key={cat.value} value={cat.value}>
@@ -329,20 +232,12 @@ export default function AuctionPage() {
                 <div className={`relative ${
                   viewMode === "list" ? "w-48 flex-shrink-0" : ""
                 }`}>
-                  <div className={`relative bg-gradient-to-br from-pearl to-slate-light/20 flex items-center justify-center overflow-hidden ${
+                  <div className={`bg-gradient-to-br from-pearl to-slate-light/20 flex items-center justify-center ${
                     viewMode === "list" ? "h-full" : "aspect-[4/3]"
                   }`}>
-                    {item.image ? (
-                      <img
-                        src={item.image}
-                        alt={item.title}
-                        className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                    ) : (
-                      <span className="text-6xl group-hover:scale-110 transition-transform duration-300">
-                        {item.emoji}
-                      </span>
-                    )}
+                    <span className="text-6xl group-hover:scale-110 transition-transform duration-300">
+                      {item.emoji}
+                    </span>
                   </div>
                   {item.isFeatured && (
                     <div className="absolute top-3 left-3 badge badge-coral">

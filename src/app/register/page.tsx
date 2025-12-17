@@ -86,9 +86,9 @@ export default function RegisterPage() {
               <Image 
                 src="/images/IMG_7446.jpeg" 
                 alt="San Anselmo Cooperative Nursery School" 
-                width={360}
-                height={140}
-                className="h-32 w-auto object-contain mx-auto"
+                width={180}
+                height={70}
+                className="h-16 w-auto object-contain mx-auto"
               />
             </Link>
             <h1 className="text-3xl font-extrabold text-midnight mb-2">Create account</h1>
@@ -116,7 +116,7 @@ export default function RegisterPage() {
                     type="email"
                     value={formData.email}
                     onChange={handleChange}
-                    className="input"
+                    className="input pl-12"
                     placeholder="you@example.com"
                     required
                   />
@@ -135,7 +135,7 @@ export default function RegisterPage() {
                     type="text"
                     value={formData.username}
                     onChange={handleChange}
-                    className="input"
+                    className="input pl-12"
                     placeholder="How others will see you"
                     required
                   />
@@ -154,7 +154,7 @@ export default function RegisterPage() {
                     type="tel"
                     value={formData.phone}
                     onChange={handleChange}
-                    className="input"
+                    className="input pl-12"
                     placeholder="(415) 555-0123"
                     required
                   />
@@ -173,7 +173,7 @@ export default function RegisterPage() {
                     type="password"
                     value={formData.password}
                     onChange={handleChange}
-                    className="input"
+                    className="input pl-12"
                     placeholder="At least 8 characters"
                     required
                     minLength={8}
@@ -193,7 +193,7 @@ export default function RegisterPage() {
                     type="password"
                     value={formData.confirmPassword}
                     onChange={handleChange}
-                    className="input"
+                    className="input pl-12"
                     placeholder="Confirm your password"
                     required
                   />

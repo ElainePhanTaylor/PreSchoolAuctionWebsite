@@ -27,9 +27,9 @@ export default function DashboardPage() {
           <Image 
             src="/images/IMG_7446.jpeg" 
             alt="Loading..." 
-            width={240}
-            height={100}
-            className="h-24 w-auto object-contain mx-auto mb-4 animate-pulse"
+            width={120}
+            height={50}
+            className="h-12 w-auto object-contain mx-auto mb-4 animate-pulse"
           />
           <p className="text-slate font-medium">Loading...</p>
         </div>
@@ -52,9 +52,9 @@ export default function DashboardPage() {
             <Image 
               src="/images/IMG_7446.jpeg" 
               alt="San Anselmo Cooperative Nursery School" 
-              width={280}
-              height={100}
-              className="h-22 w-auto object-contain"
+              width={140}
+              height={50}
+              className="h-11 w-auto object-contain"
             />
           </Link>
           <div className="flex items-center gap-4">

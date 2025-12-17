@@ -111,7 +111,7 @@ export function BidForm({ itemId, minBid, buyNowPrice, isWatching }: BidFormProp
             step="1"
             value={bidAmount}
             onChange={(e) => setBidAmount(e.target.value)}
-            className="input pl-10 text-lg font-semibold"
+            className="input pl-8 text-lg font-semibold"
             disabled={loading}
           />
         </div>

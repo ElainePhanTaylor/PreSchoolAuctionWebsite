@@ -13,9 +13,9 @@ export default function Home() {
         <Image
                 src="/images/IMG_7446.jpeg" 
                 alt="San Anselmo Cooperative Nursery School" 
-                width={280}
-                height={100}
-                className="h-24 w-auto object-contain"
+                width={140}
+                height={50}
+                className="h-12 w-auto object-contain"
               />
             </div>
             <nav className="hidden md:flex items-center gap-8">
@@ -39,13 +39,18 @@ export default function Home() {
       </header>
 
       {/* Hero Section */}
-      <section className="pt-44 pb-20 px-6">
+      <section className="pt-32 pb-20 px-6">
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left Content */}
             <div>
+              <div className="badge badge-violet mb-6">
+                <Sparkles className="w-3 h-3" />
+                Fundraising Made Fun
+              </div>
+              
               <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold text-midnight leading-[1.1] mb-6">
-                Help Us Bid for a
+                Bid for a
                 <span className="block bg-gradient-to-r from-violet via-coral to-teal bg-clip-text text-transparent">
                   Brighter Future
                 </span>
@@ -70,17 +75,17 @@ export default function Home() {
               <div className="flex items-center gap-8">
                 <div>
                   <p className="text-3xl font-extrabold text-midnight">50+</p>
-                  <p className="text-slate text-base font-semibold">Unique Items</p>
+                  <p className="text-silver text-sm font-medium">Unique Items</p>
                 </div>
                 <div className="w-px h-12 bg-slate-light/20"></div>
                 <div>
                   <p className="text-3xl font-extrabold text-midnight">$12K</p>
-                  <p className="text-slate text-base font-semibold">Raised Last Year</p>
+                  <p className="text-silver text-sm font-medium">Raised Last Year</p>
                 </div>
                 <div className="w-px h-12 bg-slate-light/20"></div>
                 <div>
                   <p className="text-3xl font-extrabold text-midnight">75</p>
-                  <p className="text-slate text-base font-semibold">Years Strong</p>
+                  <p className="text-silver text-sm font-medium">Years Strong</p>
                 </div>
               </div>
             </div>
@@ -92,11 +97,11 @@ export default function Home() {
                 <div 
                   className="absolute inset-0 bg-cover bg-center"
                   style={{
-                    backgroundImage: "url('/images/redwood.png')",
+                    backgroundImage: "url('/images/redwoods.jpg')",
                   }}
                 />
                 {/* Blur and gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-white/20 to-transparent" />
+                <div className="absolute inset-0 backdrop-blur-sm bg-gradient-to-br from-white/60 via-white/40 to-transparent" />
                 <div className="absolute inset-0 bg-gradient-to-t from-pearl/80 via-transparent to-pearl/60" />
               </div>
 
@@ -104,8 +109,8 @@ export default function Home() {
               <div className="relative h-[500px] z-10">
                 {/* Card 1 */}
                 <div className="card absolute top-0 right-0 w-72 p-4 animate-float shadow-xl" style={{ animationDelay: '0s' }}>
-                  <div className="aspect-[4/3] bg-gradient-to-br from-teal/20 to-violet/20 rounded-xl mb-3 overflow-hidden relative">
-                    <Image src="/images/wine.jpg" alt="Wine Country Getaway" fill className="object-cover" />
+                  <div className="aspect-[4/3] bg-gradient-to-br from-teal/20 to-violet/20 rounded-xl mb-3 flex items-center justify-center">
+                    <span className="text-4xl">🍷</span>
                   </div>
                   <p className="font-bold text-midnight">Wine Country Getaway</p>
                   <div className="flex items-center justify-between mt-2">
@@ -116,8 +121,8 @@ export default function Home() {
 
                 {/* Card 2 */}
                 <div className="card absolute top-32 left-0 w-64 p-4 animate-float shadow-xl" style={{ animationDelay: '0.5s' }}>
-                  <div className="aspect-[4/3] bg-gradient-to-br from-coral/20 to-violet/20 rounded-xl mb-3 overflow-hidden relative">
-                    <Image src="/images/artclass.png" alt="Art Class Bundle" fill className="object-cover" />
+                  <div className="aspect-[4/3] bg-gradient-to-br from-coral/20 to-violet/20 rounded-xl mb-3 flex items-center justify-center">
+                    <span className="text-4xl">🎨</span>
                   </div>
                   <p className="font-bold text-midnight">Art Class Bundle</p>
                   <div className="flex items-center justify-between mt-2">
@@ -128,8 +133,8 @@ export default function Home() {
 
                 {/* Card 3 */}
                 <div className="card absolute bottom-0 right-12 w-60 p-4 animate-float shadow-xl" style={{ animationDelay: '1s' }}>
-                  <div className="aspect-[4/3] bg-gradient-to-br from-violet/20 to-teal/20 rounded-xl mb-3 overflow-hidden relative">
-                    <Image src="/images/giftcards.png" alt="Gift Card Bundle" fill className="object-cover" />
+                  <div className="aspect-[4/3] bg-gradient-to-br from-violet/20 to-teal/20 rounded-xl mb-3 flex items-center justify-center">
+                    <span className="text-4xl">🎁</span>
                   </div>
                   <p className="font-bold text-midnight">Gift Card Bundle</p>
                   <div className="flex items-center justify-between mt-2">
@@ -210,19 +215,13 @@ export default function Home() {
 
           <div className="grid md:grid-cols-3 gap-6">
             {[
-              { emoji: "🏖️", title: "Beach House Weekend", price: 650, bids: 12, category: "Experiences", image: "/images/beachhouse.png" },
-              { emoji: "🍕", title: "Pizza Party Package", price: 85, bids: 6, category: "Food & Dining", image: "/images/pizza.png" },
-              { emoji: "✨", title: "Spa Day for Two", price: 320, bids: 9, category: "Services", image: "/images/spa.png" },
+              { emoji: "🏖️", title: "Beach House Weekend", price: 650, bids: 12, category: "Experiences" },
+              { emoji: "🍕", title: "Pizza Party Package", price: 85, bids: 6, category: "Food & Dining" },
+              { emoji: "✨", title: "Spa Day for Two", price: 320, bids: 9, category: "Services" },
             ].map((item, index) => (
               <Link href={`/auction/${index + 1}`} key={index} className="card p-5 group cursor-pointer">
-                <div className="aspect-[4/3] bg-gradient-to-br from-pearl to-slate-light/10 rounded-xl mb-4 overflow-hidden relative group-hover:scale-[1.02] transition-transform">
-                  {item.image ? (
-                    <Image src={item.image} alt={item.title} fill className="object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <span className="text-6xl">{item.emoji}</span>
-                    </div>
-                  )}
+                <div className="aspect-[4/3] bg-gradient-to-br from-pearl to-slate-light/10 rounded-xl mb-4 flex items-center justify-center group-hover:scale-[1.02] transition-transform">
+                  <span className="text-6xl">{item.emoji}</span>
                 </div>
                 <div className="flex items-center gap-2 mb-2">
                   <span className="badge badge-violet">{item.category}</span>
@@ -271,9 +270,9 @@ export default function Home() {
             <Image
                 src="/images/IMG_7446.jpeg" 
                 alt="San Anselmo Cooperative Nursery School" 
-                width={400}
-                height={160}
-                className="h-32 w-auto object-contain"
+                width={200}
+                height={80}
+                className="h-16 w-auto object-contain"
               />
             </div>
             <div className="text-silver text-sm text-center md:text-right">
