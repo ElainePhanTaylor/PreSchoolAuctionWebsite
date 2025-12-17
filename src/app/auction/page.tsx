@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import { useSession } from "next-auth/react"
 import Image from "next/image"
@@ -163,6 +163,23 @@ export default function AuctionPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("ALL")
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
+  const [headerSticky, setHeaderSticky] = useState(true)
+  const heroRef = useRef<HTMLDivElement>(null)
+
+  // Handle scroll - make header scroll away once banner is gone
+  useEffect(() => {
+    const handleScroll = () => {
+      if (heroRef.current) {
+        const heroBottom = heroRef.current.offsetTop + heroRef.current.offsetHeight
+        const scrollY = window.scrollY
+        // Once we've scrolled past the hero, header should scroll with page
+        setHeaderSticky(scrollY < heroBottom - 80)
+      }
+    }
+
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
   const filteredItems = DEMO_ITEMS.filter((item) => {
     const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -174,15 +191,15 @@ export default function AuctionPage() {
   return (
     <div className="min-h-screen bg-pearl">
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-md border-b border-slate-light/10 sticky top-0 z-50">
+      <header className={`bg-white/80 backdrop-blur-md border-b border-slate-light/10 z-50 transition-all ${headerSticky ? 'sticky top-0' : 'relative'}`}>
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
             <Image 
               src="/images/IMG_7446.jpeg" 
               alt="San Anselmo Cooperative Nursery School" 
-              width={280}
-              height={100}
-              className="h-22 w-auto object-contain"
+              width={140}
+              height={50}
+              className="h-12 w-auto object-contain"
             />
           </Link>
           <div className="flex items-center gap-4">
@@ -205,7 +222,7 @@ export default function AuctionPage() {
       </header>
 
       {/* Hero */}
-      <div className="relative py-16 px-6 overflow-hidden">
+      <div ref={heroRef} className="relative py-16 px-6 overflow-hidden">
         {/* Background Image */}
         <div 
           className="absolute inset-0 bg-cover bg-center"
@@ -215,17 +232,23 @@ export default function AuctionPage() {
         <div className="absolute inset-0 bg-black/40" />
         
         <div className="max-w-4xl mx-auto text-center relative z-10">
-          <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-4">
+          <h1 
+            className="text-4xl md:text-5xl font-extrabold text-white mb-4"
+            style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8), -1px -1px 2px rgba(0,0,0,0.6)' }}
+          >
             Browse Auction Items
           </h1>
-          <p className="text-white/80 text-lg">
+          <p 
+            className="text-white text-xl md:text-2xl font-semibold"
+            style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8), -1px -1px 2px rgba(0,0,0,0.6)' }}
+          >
             Discover unique items and experiences. Place your bids and win!
           </p>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="bg-white border-b sticky top-[73px] z-40">
+      <div className={`bg-white border-b sticky z-40 transition-all ${headerSticky ? 'top-[73px]' : 'top-0'}`}>
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex flex-col md:flex-row gap-4">
             {/* Search */}
