@@ -18,19 +18,19 @@ export default function Home() {
                 className="h-12 w-auto object-contain"
               />
             </Link>
-            <nav className="hidden md:flex items-center gap-8">
-              <Link href="/auction" className="text-slate font-semibold hover:text-midnight transition-colors">
+            <nav className="hidden md:flex items-center gap-10">
+              <Link href="/auction" className="text-2xl text-slate font-semibold hover:text-midnight transition-colors">
                 Browse
               </Link>
-              <Link href="#how-it-works" className="text-slate font-semibold hover:text-midnight transition-colors">
+              <Link href="#how-it-works" className="text-2xl text-slate font-semibold hover:text-midnight transition-colors">
                 How It Works
               </Link>
             </nav>
-            <div className="flex items-center gap-3">
-              <Link href="/login" className="text-midnight font-semibold hover:text-violet transition-colors">
+            <div className="flex items-center gap-5">
+              <Link href="/login" className="text-2xl text-midnight font-semibold hover:text-violet transition-colors">
                 Log In
               </Link>
-              <Link href="/register" className="btn-primary">
+              <Link href="/register" className="btn-primary text-xl px-8 py-4">
                 Get Started
               </Link>
             </div>
