@@ -26,10 +26,11 @@ export async function POST(request: Request) {
       )
     }
 
-    // Calculate starting bid if not provided
+    // Calculate starting bid if not provided (round to nearest $5)
+    const roundToFive = (n: number) => Math.round(n / 5) * 5
     const calculatedStartingBid = startingBid 
       ? parseFloat(startingBid) 
-      : (estimatedValue ? estimatedValue * 0.5 : 25)
+      : roundToFive(estimatedValue ? estimatedValue * 0.5 : 25)
 
     // Create the item
     const item = await prisma.item.create({

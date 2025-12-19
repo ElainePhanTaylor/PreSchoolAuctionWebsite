@@ -52,7 +52,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "The auction has ended" }, { status: 400 })
     }
 
-    // 6. Calculate minimum bid (server-side, never trust client)
+    // 6. Check if user is already the highest bidder
+    const currentHighBidder = item.bids[0]?.user
+    if (currentHighBidder && currentHighBidder.id === user.id) {
+      return NextResponse.json(
+        { error: "You already have the highest bid! No need to bid again." },
+        { status: 400 }
+      )
+    }
+
+    // 7. Calculate minimum bid (server-side, never trust client)
     const currentBid = item.currentBid ?? item.startingBid
     const minBid = currentBid + minIncrement
 
@@ -63,7 +72,7 @@ export async function POST(request: Request) {
       )
     }
 
-    // 7. Check anti-sniping: if bid is within X minutes of end, extend auction
+    // 8. Check anti-sniping: if bid is within X minutes of end, extend auction
     let newEndTime = auctionEndTime
     if (auctionEndTime) {
       const msUntilEnd = auctionEndTime.getTime() - Date.now()

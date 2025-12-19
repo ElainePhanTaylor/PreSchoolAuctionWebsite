@@ -4,7 +4,6 @@ import { useState } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import Image from "next/image"
 import { 
   ArrowLeft, Upload, X, Loader2, CheckCircle, AlertCircle
 } from "lucide-react"
@@ -278,11 +277,11 @@ export default function AddItemPage() {
               <div className="grid grid-cols-3 gap-4">
                 {photoUrls.map((url, index) => (
                   <div key={index} className="relative aspect-[4/3] bg-gray-100 rounded-xl overflow-hidden group">
-                    <Image
+                    {/* Using img tag for preview to allow any domain */}
+                    <img
                       src={url}
                       alt={`Photo ${index + 1}`}
-                      fill
-                      className="object-cover"
+                      className="w-full h-full object-cover"
                     />
                     <button
                       type="button"
