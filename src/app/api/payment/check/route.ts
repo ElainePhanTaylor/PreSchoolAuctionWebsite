@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { sendPaymentConfirmationEmail } from "@/lib/email"
 
 // Request to pay by check
 export async function POST(request: Request) {
@@ -12,7 +13,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Please log in" }, { status: 401 })
     }
 
-    const user = session.user as { id: string }
+    const user = session.user as { id: string; email: string }
     const { itemId } = await request.json()
 
     if (!itemId) {
@@ -66,6 +67,9 @@ export async function POST(request: Request) {
         status: "PENDING",
       },
     })
+
+    // Send email with check instructions
+    sendPaymentConfirmationEmail(user.email, item.title, amount, "CHECK")
 
     return NextResponse.json({
       success: true,

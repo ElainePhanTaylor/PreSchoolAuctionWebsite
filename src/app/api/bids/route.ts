@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { sendOutbidEmail } from "@/lib/email"
 
 export async function POST(request: Request) {
   try {
@@ -110,10 +111,11 @@ export async function POST(request: Request) {
       data: { currentBid: amount }
     })
 
-    // 11. TODO: Send outbid notification email to previous bidder
-    // if (previousHighBidder && previousHighBidder.id !== user.id) {
-    //   await sendOutbidEmail(previousHighBidder.email, item.title, amount)
-    // }
+    // 11. Send outbid notification email to previous bidder
+    if (previousHighBidder && previousHighBidder.id !== user.id) {
+      // Don't await - send email in background
+      sendOutbidEmail(previousHighBidder.email, item.title, amount, item.id)
+    }
 
     return NextResponse.json({
       message: "Bid placed successfully!",

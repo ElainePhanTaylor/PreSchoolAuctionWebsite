@@ -30,6 +30,7 @@ export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<Tab>("items")
   const [items, setItems] = useState<AuctionItem[]>([])
   const [loading, setLoading] = useState(true)
+  const [endingAuction, setEndingAuction] = useState(false)
 
   // Fetch items
   useEffect(() => {
@@ -60,8 +61,41 @@ export default function AdminPage() {
       } else {
         alert("Failed to delete item")
       }
-    } catch (error) {
+    } catch {
       alert("Failed to delete item")
+    }
+  }
+
+  // End auction handler
+  const handleEndAuction = async () => {
+    const confirmed = confirm(
+      "⚠️ END AUCTION?\n\n" +
+      "This will:\n" +
+      "• Set winners for all items with bids\n" +
+      "• Mark items without bids as unsold\n" +
+      "• Send winner notification emails\n\n" +
+      "This action cannot be undone. Continue?"
+    )
+    if (!confirmed) return
+
+    setEndingAuction(true)
+    try {
+      const res = await fetch("/api/admin/end-auction", { method: "POST" })
+      const data = await res.json()
+      if (res.ok) {
+        alert(`✅ ${data.message}`)
+        // Refresh items
+        const itemsRes = await fetch("/api/items?status=APPROVED")
+        if (itemsRes.ok) {
+          setItems(await itemsRes.json())
+        }
+      } else {
+        alert(`Error: ${data.error}`)
+      }
+    } catch {
+      alert("Failed to end auction")
+    } finally {
+      setEndingAuction(false)
     }
   }
 
@@ -278,6 +312,29 @@ export default function AdminPage() {
             {activeTab === "settings" && (
               <div className="space-y-6">
                 <h1 className="text-2xl font-bold text-text">Auction Settings</h1>
+
+                {/* End Auction Section */}
+                <div className="card p-6 border-2 border-red-200 bg-red-50">
+                  <h2 className="text-lg font-bold text-red-700 mb-2">End Auction</h2>
+                  <p className="text-sm text-red-600 mb-4">
+                    When you&apos;re ready to close the auction, click below. This will set winners 
+                    for all items and send notification emails.
+                  </p>
+                  <button
+                    onClick={handleEndAuction}
+                    disabled={endingAuction}
+                    className="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+                  >
+                    {endingAuction ? (
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        Ending Auction...
+                      </>
+                    ) : (
+                      "End Auction & Notify Winners"
+                    )}
+                  </button>
+                </div>
                 
                 <div className="card p-6 space-y-6">
                   <div>

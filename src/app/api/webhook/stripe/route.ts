@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { headers } from "next/headers"
 import { stripe } from "@/lib/stripe"
 import { prisma } from "@/lib/prisma"
+import { sendPaymentConfirmationEmail } from "@/lib/email"
 import Stripe from "stripe"
 
 export async function POST(request: Request) {
@@ -35,11 +36,15 @@ export async function POST(request: Request) {
 
     if (itemId && userId) {
       // Update payment status
-      await prisma.payment.update({
+      const payment = await prisma.payment.update({
         where: { itemId },
         data: {
           status: "COMPLETED",
           stripeId: session.id,
+        },
+        include: {
+          item: { select: { title: true } },
+          user: { select: { email: true } },
         },
       })
 
@@ -49,8 +54,13 @@ export async function POST(request: Request) {
         data: { status: "SOLD" },
       })
 
-      // TODO: Send confirmation email
-      // await sendPaymentConfirmationEmail(userId, itemId)
+      // Send confirmation email
+      sendPaymentConfirmationEmail(
+        payment.user.email,
+        payment.item.title,
+        payment.amount,
+        "STRIPE"
+      )
 
       console.log(`Payment completed for item ${itemId} by user ${userId}`)
     }
