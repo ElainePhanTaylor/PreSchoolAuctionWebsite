@@ -1,0 +1,121 @@
+import { NextResponse } from "next/server"
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/lib/auth"
+import { prisma } from "@/lib/prisma"
+
+// GET single item
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params
+
+    const item = await prisma.item.findUnique({
+      where: { id },
+      include: {
+        photos: { orderBy: { order: "asc" } },
+        donor: { select: { username: true } },
+        _count: { select: { bids: true } },
+      },
+    })
+
+    if (!item) {
+      return NextResponse.json({ error: "Item not found" }, { status: 404 })
+    }
+
+    // Only show approved items to non-admins
+    if (item.status !== "APPROVED") {
+      const session = await getServerSession(authOptions)
+      const user = session?.user as { isAdmin?: boolean } | undefined
+      if (!user?.isAdmin) {
+        return NextResponse.json({ error: "Item not found" }, { status: 404 })
+      }
+    }
+
+    return NextResponse.json(item)
+  } catch (error) {
+    console.error("Get item error:", error)
+    return NextResponse.json(
+      { error: "Something went wrong" },
+      { status: 500 }
+    )
+  }
+}
+
+// PATCH update item (admin only)
+export async function PATCH(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await getServerSession(authOptions)
+    const user = session?.user as { id: string; isAdmin?: boolean } | undefined
+
+    if (!user?.isAdmin) {
+      return NextResponse.json({ error: "Admin access required" }, { status: 403 })
+    }
+
+    const { id } = await params
+    const updates = await request.json()
+
+    // Whitelist allowed fields
+    const allowedFields = [
+      "title", "description", "category", "estimatedValue",
+      "startingBid", "currentBid", "isFeatured", "status"
+    ]
+    
+    const data: Record<string, unknown> = {}
+    for (const field of allowedFields) {
+      if (updates[field] !== undefined) {
+        data[field] = updates[field]
+      }
+    }
+
+    const item = await prisma.item.update({
+      where: { id },
+      data,
+      include: {
+        photos: { orderBy: { order: "asc" } },
+      },
+    })
+
+    return NextResponse.json(item)
+  } catch (error) {
+    console.error("Update item error:", error)
+    return NextResponse.json(
+      { error: "Something went wrong" },
+      { status: 500 }
+    )
+  }
+}
+
+// DELETE item (admin only)
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await getServerSession(authOptions)
+    const user = session?.user as { isAdmin?: boolean } | undefined
+
+    if (!user?.isAdmin) {
+      return NextResponse.json({ error: "Admin access required" }, { status: 403 })
+    }
+
+    const { id } = await params
+
+    // Delete related records first (photos, bids)
+    await prisma.photo.deleteMany({ where: { itemId: id } })
+    await prisma.bid.deleteMany({ where: { itemId: id } })
+    await prisma.item.delete({ where: { id } })
+
+    return NextResponse.json({ message: "Item deleted" })
+  } catch (error) {
+    console.error("Delete item error:", error)
+    return NextResponse.json(
+      { error: "Something went wrong" },
+      { status: 500 }
+    )
+  }
+}

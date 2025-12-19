@@ -11,7 +11,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { title, description, category, estimatedValue, photos } = await request.json()
+    // Only admins can create items
+    const user = session.user as { id: string; isAdmin?: boolean }
+    if (!user.isAdmin) {
+      return NextResponse.json({ error: "Admin access required" }, { status: 403 })
+    }
+
+    const { title, description, category, estimatedValue, startingBid, isFeatured, photos } = await request.json()
 
     if (!title || !description || !category || !photos || photos.length === 0) {
       return NextResponse.json(
@@ -20,6 +26,11 @@ export async function POST(request: Request) {
       )
     }
 
+    // Calculate starting bid if not provided
+    const calculatedStartingBid = startingBid 
+      ? parseFloat(startingBid) 
+      : (estimatedValue ? estimatedValue * 0.5 : 25)
+
     // Create the item
     const item = await prisma.item.create({
       data: {
@@ -27,9 +38,10 @@ export async function POST(request: Request) {
         description,
         category,
         estimatedValue: estimatedValue || null,
-        startingBid: estimatedValue ? estimatedValue * 0.5 : 25, // Default starting bid
-        donorId: session.user.id,
-        status: "PENDING",
+        startingBid: calculatedStartingBid,
+        isFeatured: isFeatured || false,
+        donorId: user.id,
+        status: "APPROVED", // Admin-created items go live immediately
         photos: {
           create: photos.map((url: string, index: number) => ({
             url,

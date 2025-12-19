@@ -1,12 +1,12 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useSession } from "next-auth/react"
 import Image from "next/image"
 import { 
-  Search, Heart, Clock, 
-  ChevronDown, Grid, List, TrendingUp
+  Search, Clock, 
+  ChevronDown, Grid, List, TrendingUp, Loader2
 } from "lucide-react"
 
 const CATEGORIES = [
@@ -23,148 +23,47 @@ const CATEGORIES = [
   { value: "OTHER", label: "Other" },
 ]
 
-const DEMO_ITEMS = [
-  {
-    id: "1",
-    title: "Wine Country Weekend Getaway",
-    description: "Two nights at a beautiful Sonoma vineyard cottage",
-    category: "EXPERIENCES",
-    currentBid: 450,
-    bids: 8,
-    image: "/images/wine.png",
-    isFeatured: true,
-    endsIn: "2 days",
-  },
-  {
-    id: "2", 
-    title: "$100 Whole Foods Gift Card",
-    description: "Stock up on organic groceries",
-    category: "GIFT_CARDS",
-    currentBid: 75,
-    bids: 3,
-    image: "/images/wholefoods.png",
-    isFeatured: false,
-    endsIn: "2 days",
-  },
-  {
-    id: "3",
-    title: "Handmade Quilt by Local Artist",
-    description: "Beautiful queen-size patchwork quilt",
-    category: "HANDMADE",
-    currentBid: 180,
-    bids: 5,
-    image: "/images/quilt.jpeg",
-    isFeatured: true,
-    endsIn: "2 days",
-  },
-  {
-    id: "4",
-    title: "Family Portrait Session",
-    description: "Professional photography session with prints",
-    category: "SERVICES",
-    currentBid: 250,
-    bids: 6,
-    image: "/images/portraitsession.png",
-    isFeatured: false,
-    endsIn: "2 days",
-  },
-  {
-    id: "5",
-    title: "Italian Dinner for 6",
-    description: "Chef-prepared meal in your home",
-    category: "FOOD_DINING",
-    currentBid: 320,
-    bids: 7,
-    image: "/images/italian.png",
-    isFeatured: true,
-    endsIn: "2 days",
-  },
-  {
-    id: "6",
-    title: "Kids Art Camp Week",
-    description: "One week of summer art camp",
-    category: "KIDS",
-    currentBid: 200,
-    bids: 4,
-    image: "/images/kidscamp.jpeg",
-    isFeatured: false,
-    endsIn: "2 days",
-  },
-  {
-    id: "7",
-    title: "Beach House Weekend",
-    description: "Relaxing weekend getaway at a beautiful beach house",
-    category: "EXPERIENCES",
-    currentBid: 650,
-    bids: 12,
-    image: "/images/beachhouse.png",
-    isFeatured: true,
-    endsIn: "2 days",
-  },
-  {
-    id: "8",
-    title: "Pizza Party Package",
-    description: "Pizza party for 10 kids with drinks and dessert",
-    category: "FOOD_DINING",
-    currentBid: 85,
-    bids: 6,
-    image: "/images/pizza.png",
-    isFeatured: false,
-    endsIn: "2 days",
-  },
-  {
-    id: "9",
-    title: "Spa Day for Two",
-    description: "Full spa treatment including massage and facial",
-    category: "SERVICES",
-    currentBid: 320,
-    bids: 9,
-    image: "/images/spa.png",
-    isFeatured: true,
-    endsIn: "2 days",
-  },
-  {
-    id: "10",
-    title: "Art Class Bundle",
-    description: "4 art classes for children at local studio",
-    category: "ART",
-    currentBid: 180,
-    bids: 5,
-    image: "/images/artclass.png",
-    isFeatured: false,
-    endsIn: "2 days",
-  },
-  {
-    id: "11",
-    title: "Gift Card Bundle",
-    description: "Collection of local restaurant and shop gift cards",
-    category: "GIFT_CARDS",
-    currentBid: 120,
-    bids: 3,
-    image: "/images/giftcards.png",
-    isFeatured: false,
-    endsIn: "2 days",
-  },
-  {
-    id: "12",
-    title: "Redwood Forest Adventure",
-    description: "Guided nature hike through Muir Woods with picnic lunch",
-    category: "EXPERIENCES",
-    currentBid: 275,
-    bids: 7,
-    image: "/images/redwood.png",
-    isFeatured: true,
-    endsIn: "2 days",
-  },
-]
+// Item type from API
+interface AuctionItem {
+  id: string
+  title: string
+  description: string
+  category: string
+  currentBid: number | null
+  startingBid: number
+  isFeatured: boolean
+  photos: { url: string; order: number }[]
+  _count: { bids: number }
+}
 
 export default function AuctionPage() {
   const { data: session } = useSession()
+  const [items, setItems] = useState<AuctionItem[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("ALL")
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
 
-  const filteredItems = DEMO_ITEMS.filter((item) => {
+  // Fetch items from API
+  useEffect(() => {
+    async function fetchItems() {
+      try {
+        setLoading(true)
+        const res = await fetch("/api/items")
+        if (!res.ok) throw new Error("Failed to fetch items")
+        const data = await res.json()
+        setItems(data)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to load items")
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchItems()
+  }, [])
+
+  const filteredItems = items.filter((item) => {
     const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           item.description.toLowerCase().includes(searchQuery.toLowerCase())
     const matchesCategory = selectedCategory === "ALL" || item.category === selectedCategory
@@ -291,7 +190,18 @@ export default function AuctionPage() {
 
       {/* Items Grid */}
       <main className="max-w-7xl mx-auto px-6 py-8">
-        {filteredItems.length === 0 ? (
+        {loading ? (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="w-8 h-8 animate-spin text-violet" />
+            <span className="ml-3 text-slate">Loading items...</span>
+          </div>
+        ) : error ? (
+          <div className="text-center py-20">
+            <div className="text-6xl mb-4">⚠️</div>
+            <h2 className="text-2xl font-bold text-midnight mb-2">Something went wrong</h2>
+            <p className="text-slate">{error}</p>
+          </div>
+        ) : filteredItems.length === 0 ? (
           <div className="text-center py-20">
             <div className="text-6xl mb-4">🔍</div>
             <h2 className="text-2xl font-bold text-midnight mb-2">No items found</h2>
@@ -319,7 +229,7 @@ export default function AuctionPage() {
                     viewMode === "list" ? "h-full" : "aspect-[4/3]"
                   }`}>
                     <Image 
-                      src={item.image} 
+                      src={item.photos[0]?.url || "/images/placeholder.png"} 
                       alt={item.title} 
                       width={400} 
                       height={300} 
@@ -331,14 +241,6 @@ export default function AuctionPage() {
                       Featured
                     </div>
                   )}
-                  <button 
-                    className="absolute top-3 right-3 p-2 bg-white/90 backdrop-blur-sm rounded-full hover:bg-white transition-colors shadow-md"
-                    onClick={(e) => {
-                      e.preventDefault()
-                    }}
-                  >
-                    <Heart className="w-4 h-4 text-silver hover:text-coral transition-colors" />
-                  </button>
                 </div>
 
                 {/* Content */}
@@ -351,17 +253,17 @@ export default function AuctionPage() {
                   
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-silver">Current Bid</p>
-                      <p className="text-2xl font-extrabold text-midnight">${item.currentBid}</p>
+                      <p className="text-sm text-silver">{item._count.bids > 0 ? "Current Bid" : "Starting Bid"}</p>
+                      <p className="text-2xl font-extrabold text-midnight">${item.currentBid ?? item.startingBid}</p>
                     </div>
                     <div className="text-right">
                       <div className="flex items-center gap-1 text-slate text-sm mb-1">
                         <TrendingUp className="w-4 h-4" />
-                        <span>{item.bids} bids</span>
+                        <span>{item._count.bids} bids</span>
                       </div>
                       <div className="flex items-center gap-1 text-silver text-sm">
                         <Clock className="w-4 h-4" />
-                        <span>{item.endsIn}</span>
+                        <span>Active</span>
                       </div>
                     </div>
                   </div>

@@ -278,10 +278,10 @@ export default function AdminPage() {
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
                   <h1 className="text-2xl font-bold text-text">Manage Items</h1>
-                  <button className="btn-gold flex items-center gap-2">
+                  <Link href="/admin/items/new" className="btn-gold flex items-center gap-2">
                     <Plus className="w-4 h-4" />
                     Add Item
-                  </button>
+                  </Link>
                 </div>
 
                 {/* Pending Approvals */}
