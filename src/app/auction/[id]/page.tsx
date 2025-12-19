@@ -7,7 +7,8 @@ import { useParams, useRouter } from "next/navigation"
 import Image from "next/image"
 import { 
   ArrowLeft, Clock, User, 
-  Gavel, AlertCircle, CheckCircle, Loader2
+  Gavel, AlertCircle, CheckCircle, Loader2,
+  CreditCard, FileText
 } from "lucide-react"
 
 interface Bid {
@@ -26,9 +27,12 @@ interface AuctionItem {
   startingBid: number
   estimatedValue: number | null
   isFeatured: boolean
+  status: string
+  winnerId: string | null
   photos: { url: string }[]
   donor: { username: string }
   _count: { bids: number }
+  payment?: { status: string; method: string } | null
 }
 
 export default function ItemDetailPage() {
@@ -44,6 +48,15 @@ export default function ItemDetailPage() {
   const [bidAmount, setBidAmount] = useState(0)
   const [bidStatus, setBidStatus] = useState<"idle" | "submitting" | "success" | "error">("idle")
   const [bidError, setBidError] = useState("")
+  
+  const [paymentLoading, setPaymentLoading] = useState(false)
+  const [checkInfo, setCheckInfo] = useState<{
+    payableTo: string
+    mailingAddress: string
+    amount: number
+    deadlineDays: number
+    itemTitle: string
+  } | null>(null)
 
   const minIncrement = 10
   const currentBid = item?.currentBid ?? item?.startingBid ?? 0
@@ -126,6 +139,56 @@ export default function ItemDetailPage() {
       setBidError(err instanceof Error ? err.message : "Failed to place bid")
     }
   }
+
+  // Handle Stripe payment
+  const handleStripePayment = async () => {
+    setPaymentLoading(true)
+    try {
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ itemId: id }),
+      })
+      const data = await res.json()
+      if (data.url) {
+        window.location.href = data.url
+      } else {
+        alert(data.error || "Could not start checkout")
+      }
+    } catch {
+      alert("Payment failed. Please try again.")
+    } finally {
+      setPaymentLoading(false)
+    }
+  }
+
+  // Handle check payment
+  const handleCheckPayment = async () => {
+    setPaymentLoading(true)
+    try {
+      const res = await fetch("/api/payment/check", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ itemId: id }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        setCheckInfo(data.checkInstructions)
+      } else {
+        alert(data.error || "Could not process request")
+      }
+    } catch {
+      alert("Something went wrong. Please try again.")
+    } finally {
+      setPaymentLoading(false)
+    }
+  }
+
+  // Check if user is the winner
+  const userId = (session?.user as { id?: string })?.id
+  const isWinner = item?.winnerId === userId && userId !== undefined
+  const isPaid = item?.payment?.status === "COMPLETED"
+  const auctionEnded = item?.status === "SOLD" || item?.status === "UNSOLD"
 
   // Format time ago
   const timeAgo = (dateString: string) => {
@@ -267,68 +330,153 @@ export default function ItemDetailPage() {
                 {item.title}
               </h1>
 
-              {/* Time Remaining */}
+              {/* Status */}
               <div className="flex items-center gap-2 text-slate mb-6">
                 <Clock className="w-5 h-5" />
-                <span>Auction is <strong className="text-midnight">Active</strong></span>
+                {auctionEnded ? (
+                  <span>Auction <strong className="text-midnight">Ended</strong></span>
+                ) : (
+                  <span>Auction is <strong className="text-midnight">Active</strong></span>
+                )}
               </div>
 
-              {/* Current Bid */}
+              {/* Current/Winning Bid */}
               <div className="bg-violet/10 rounded-xl p-4 mb-6">
                 <p className="text-sm text-slate mb-1">
-                  {item._count.bids > 0 ? "Current Bid" : "Starting Bid"}
+                  {auctionEnded ? "Winning Bid" : item._count.bids > 0 ? "Current Bid" : "Starting Bid"}
                 </p>
                 <p className="text-4xl font-extrabold text-midnight">${currentBid}</p>
                 <p className="text-sm text-slate">{item._count.bids} bids</p>
               </div>
 
-              {/* Bid Input */}
-              <div className="mb-4">
-                <label className="block text-sm font-semibold text-midnight mb-2">
-                  Your Bid (minimum ${minBid})
-                </label>
-                <div className="flex gap-2">
-                  <div className="relative flex-1">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate">$</span>
-                    <input
-                      type="number"
-                      value={bidAmount}
-                      onChange={(e) => setBidAmount(Number(e.target.value))}
-                      min={minBid}
-                      step={minIncrement}
-                      className="input pl-8"
-                      disabled={bidStatus === "submitting"}
-                    />
+              {/* Winner Payment Section */}
+              {isWinner && !isPaid && (
+                <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 mb-6">
+                  <div className="flex items-center gap-2 text-emerald-700 mb-3">
+                    <CheckCircle className="w-5 h-5" />
+                    <span className="font-semibold">Congratulations! You won this item!</span>
                   </div>
-                  <button
-                    onClick={handleBid}
-                    disabled={bidStatus === "submitting"}
-                    className="btn-coral whitespace-nowrap disabled:opacity-50"
-                  >
-                    {bidStatus === "submitting" ? (
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                    ) : (
-                      "Place Bid"
-                    )}
-                  </button>
-                </div>
-                <p className="text-xs text-silver mt-1">
-                  Minimum increment: ${minIncrement}
-                </p>
-              </div>
-
-              {/* Bid Status Messages */}
-              {bidStatus === "success" && (
-                <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl mb-4 flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5" />
-                  <span>Your bid has been placed!</span>
+                  
+                  {checkInfo ? (
+                    // Show check instructions
+                    <div className="bg-white rounded-lg p-4 text-sm">
+                      <h4 className="font-semibold text-midnight mb-2">Check Payment Instructions</h4>
+                      <p className="text-slate mb-2">
+                        Please mail a check for <strong>${checkInfo.amount}</strong> within {checkInfo.deadlineDays} days to:
+                      </p>
+                      <div className="bg-gray-50 p-3 rounded mb-2">
+                        <p className="font-medium">Payable to:</p>
+                        <p>{checkInfo.payableTo}</p>
+                      </div>
+                      <div className="bg-gray-50 p-3 rounded">
+                        <p className="font-medium">Mail to:</p>
+                        <p>{checkInfo.mailingAddress}</p>
+                      </div>
+                      <p className="text-xs text-silver mt-2">
+                        Please write &quot;{checkInfo.itemTitle}&quot; in the memo line.
+                      </p>
+                    </div>
+                  ) : (
+                    // Show payment buttons
+                    <div className="space-y-2">
+                      <button
+                        onClick={handleStripePayment}
+                        disabled={paymentLoading}
+                        className="w-full bg-emerald-600 text-white py-3 px-4 rounded-lg hover:bg-emerald-700 transition flex items-center justify-center gap-2 disabled:opacity-50"
+                      >
+                        {paymentLoading ? (
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                        ) : (
+                          <>
+                            <CreditCard className="w-5 h-5" />
+                            Pay ${currentBid} with Card
+                          </>
+                        )}
+                      </button>
+                      <button
+                        onClick={handleCheckPayment}
+                        disabled={paymentLoading}
+                        className="w-full border border-gray-300 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-50 transition flex items-center justify-center gap-2 disabled:opacity-50"
+                      >
+                        <FileText className="w-5 h-5" />
+                        Pay by Check
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
-              {bidStatus === "error" && (
-                <div className="bg-coral/10 border border-coral/20 text-coral px-4 py-3 rounded-xl mb-4 flex items-center gap-2">
-                  <AlertCircle className="w-5 h-5" />
-                  <span>{bidError}</span>
+
+              {/* Already Paid */}
+              {isWinner && isPaid && (
+                <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 mb-6">
+                  <div className="flex items-center gap-2 text-emerald-700">
+                    <CheckCircle className="w-5 h-5" />
+                    <span className="font-semibold">Payment Complete!</span>
+                  </div>
+                  <p className="text-sm text-emerald-600 mt-1">
+                    Thank you! Check your email for pickup/delivery details.
+                  </p>
                 </div>
+              )}
+
+              {/* Auction Ended - Not Winner */}
+              {auctionEnded && !isWinner && (
+                <div className="bg-gray-100 rounded-xl p-4 mb-6 text-center">
+                  <p className="text-slate">This auction has ended.</p>
+                </div>
+              )}
+
+              {/* Bid Input - only show if auction is active */}
+              {!auctionEnded && (
+                <>
+                  <div className="mb-4">
+                    <label className="block text-sm font-semibold text-midnight mb-2">
+                      Your Bid (minimum ${minBid})
+                    </label>
+                    <div className="flex gap-2">
+                      <div className="relative flex-1">
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate">$</span>
+                        <input
+                          type="number"
+                          value={bidAmount}
+                          onChange={(e) => setBidAmount(Number(e.target.value))}
+                          min={minBid}
+                          step={minIncrement}
+                          className="input pl-8"
+                          disabled={bidStatus === "submitting"}
+                        />
+                      </div>
+                      <button
+                        onClick={handleBid}
+                        disabled={bidStatus === "submitting"}
+                        className="btn-coral whitespace-nowrap disabled:opacity-50"
+                      >
+                        {bidStatus === "submitting" ? (
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                        ) : (
+                          "Place Bid"
+                        )}
+                      </button>
+                    </div>
+                    <p className="text-xs text-silver mt-1">
+                      Minimum increment: ${minIncrement}
+                    </p>
+                  </div>
+
+                  {/* Bid Status Messages */}
+                  {bidStatus === "success" && (
+                    <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl mb-4 flex items-center gap-2">
+                      <CheckCircle className="w-5 h-5" />
+                      <span>Your bid has been placed!</span>
+                    </div>
+                  )}
+                  {bidStatus === "error" && (
+                    <div className="bg-coral/10 border border-coral/20 text-coral px-4 py-3 rounded-xl mb-4 flex items-center gap-2">
+                      <AlertCircle className="w-5 h-5" />
+                      <span>{bidError}</span>
+                    </div>
+                  )}
+                </>
               )}
 
               {/* Bid History */}

@@ -17,6 +17,7 @@ export async function GET(
         photos: { orderBy: { order: "asc" } },
         donor: { select: { username: true } },
         _count: { select: { bids: true } },
+        payment: { select: { status: true, method: true } },
       },
     })
 
@@ -24,8 +25,9 @@ export async function GET(
       return NextResponse.json({ error: "Item not found" }, { status: 404 })
     }
 
-    // Only show approved items to non-admins
-    if (item.status !== "APPROVED") {
+    // Only show approved or sold items to non-admins
+    const publicStatuses = ["APPROVED", "SOLD", "UNSOLD"]
+    if (!publicStatuses.includes(item.status)) {
       const session = await getServerSession(authOptions)
       const user = session?.user as { isAdmin?: boolean } | undefined
       if (!user?.isAdmin) {
