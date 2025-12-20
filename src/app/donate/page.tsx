@@ -33,6 +33,7 @@ export default function DonatePage() {
     description: "",
     category: "",
     estimatedValue: "",
+    donorName: "",
   })
   const [photos, setPhotos] = useState<File[]>([])
   const [photoPreviewUrls, setPhotoPreviewUrls] = useState<string[]>([])
@@ -171,6 +172,7 @@ export default function DonatePage() {
           description: formData.description,
           category: formData.category,
           estimatedValue: formData.estimatedValue ? parseFloat(formData.estimatedValue) : null,
+          donorName: formData.donorName,
           photos: photoUrls,
         }),
       })
@@ -219,7 +221,7 @@ export default function DonatePage() {
               <button 
                 onClick={() => {
                   setSuccess(false)
-                  setFormData({ title: "", description: "", category: "", estimatedValue: "" })
+                  setFormData({ title: "", description: "", category: "", estimatedValue: "", donorName: "" })
                   setPhotos([])
                   setPhotoPreviewUrls([])
                 }}
@@ -358,6 +360,26 @@ export default function DonatePage() {
                 placeholder="e.g., Wine Country Weekend Getaway"
                 required
               />
+            </div>
+
+            {/* Donor Name */}
+            <div>
+              <label htmlFor="donorName" className="block text-sm font-medium text-midnight mb-2">
+                Donated By <span className="text-coral">*</span>
+              </label>
+              <input
+                id="donorName"
+                name="donorName"
+                type="text"
+                value={formData.donorName}
+                onChange={handleChange}
+                className="input"
+                placeholder="e.g., The Smith Family, Jane Doe, Local Business Name"
+                required
+              />
+              <p className="text-xs text-slate mt-1">
+                This name will be displayed on the auction item.
+              </p>
             </div>
 
             {/* Category */}

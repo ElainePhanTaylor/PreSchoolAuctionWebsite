@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Gavel, Heart, Zap, X, AlertCircle } from "lucide-react"
+import { Gavel, Heart, Zap } from "lucide-react"
 
 interface BidFormProps {
   itemId: string
@@ -108,51 +108,31 @@ export function BidForm({ itemId, itemTitle, minBid, buyNowPrice, isWatching }: 
 
   return (
     <div className="space-y-4">
-      {/* Confirmation Modal */}
+      {/* Confirmation Modal - Simple */}
       {showConfirm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold text-midnight">Confirm Your Bid</h3>
-              <button 
-                onClick={() => setShowConfirm(false)}
-                className="p-1 hover:bg-gray-100 rounded-full"
-              >
-                <X className="w-5 h-5 text-gray-500" />
-              </button>
-            </div>
-            
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
-              <div className="flex items-start gap-3">
-                <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-amber-800 font-medium">
-                    You are about to bid <span className="text-xl font-bold">${pendingAmount}</span>
-                  </p>
-                  <p className="text-amber-700 text-sm mt-1">
-                    on &ldquo;{itemTitle}&rdquo;
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <p className="text-sm text-slate mb-6">
-              By confirming, you agree to pay this amount if you win. Bids cannot be retracted.
+        <div 
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          onClick={() => setShowConfirm(false)}
+        >
+          <div 
+            className="bg-white rounded-xl max-w-sm w-full p-6 shadow-xl text-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p className="text-lg text-midnight mb-6">
+              Bid <span className="font-bold">${pendingAmount}</span> on this item?
             </p>
-
-            <div className="flex gap-3">
+            <div className="flex gap-4">
               <button
                 onClick={() => setShowConfirm(false)}
-                className="flex-1 px-4 py-3 border-2 border-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition-colors"
+                className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-600 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={confirmBid}
-                className="flex-1 px-4 py-3 bg-coral text-white rounded-xl font-semibold hover:bg-coral/90 transition-colors flex items-center justify-center gap-2"
+                className="flex-1 px-6 py-3 bg-coral text-white rounded-lg font-bold text-lg hover:bg-coral/90 transition-colors shadow-md"
               >
-                <Gavel className="w-5 h-5" />
-                Confirm Bid
+                ✓ Yes, Bid
               </button>
             </div>
           </div>

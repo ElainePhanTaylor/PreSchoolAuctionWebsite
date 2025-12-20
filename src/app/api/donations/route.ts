@@ -12,12 +12,12 @@ export async function POST(request: Request) {
     }
 
     const user = session.user as { id: string }
-    const { title, description, category, estimatedValue, photos } = await request.json()
+    const { title, description, category, estimatedValue, donorName, photos } = await request.json()
 
     // Validate required fields
-    if (!title || !description || !category) {
+    if (!title || !description || !category || !donorName) {
       return NextResponse.json(
-        { error: "Title, description, and category are required" },
+        { error: "Title, description, category, and donor name are required" },
         { status: 400 }
       )
     }
@@ -45,6 +45,7 @@ export async function POST(request: Request) {
         startingBid,
         status: "PENDING", // Requires admin approval
         donorId: user.id,
+        donorName, // Display name for the donor
         photos: {
           create: photos.map((url: string, index: number) => ({
             url,
