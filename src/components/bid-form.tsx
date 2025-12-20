@@ -130,7 +130,7 @@ export function BidForm({ itemId, itemTitle, minBid, buyNowPrice, isWatching }: 
               </button>
               <button
                 onClick={confirmBid}
-                className="flex-1 px-6 py-3 bg-coral text-white rounded-lg font-bold text-lg hover:bg-coral/90 transition-colors shadow-md"
+                className="flex-1 px-6 py-3 bg-green-600 text-white rounded-lg font-bold text-lg hover:bg-green-700 transition-colors shadow-lg"
               >
                 ✓ Yes, Bid
               </button>
