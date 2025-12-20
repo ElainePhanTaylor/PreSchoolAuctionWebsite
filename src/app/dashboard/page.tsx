@@ -8,7 +8,7 @@ import Image from "next/image"
 import { 
   Gavel, Settings, LogOut, User, 
   TrendingUp, Package, ArrowRight, AlertCircle,
-  CheckCircle, CreditCard, Clock, Loader2
+  CheckCircle, CreditCard, Clock, Loader2, Gift
 } from "lucide-react"
 
 interface BidItem {
@@ -189,6 +189,25 @@ export default function DashboardPage() {
             </div>
           </div>
         )}
+
+        {/* Donate an Item */}
+        <div className="card p-6 bg-gradient-to-r from-teal/5 to-violet/5 border border-teal/20 mb-8">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-teal to-violet flex items-center justify-center">
+              <Gift className="w-6 h-6 text-white" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-bold text-midnight">Donate an Item</h3>
+              <p className="text-slate text-sm">
+                Have something to contribute? Submit it for our auction!
+              </p>
+            </div>
+            <Link href="/donate" className="btn-outline flex items-center gap-2">
+              Donate Item
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+        </div>
 
         {loading ? (
           <div className="card p-12 text-center">

@@ -1,11 +1,11 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { 
-  ArrowLeft, Upload, X, Loader2, CheckCircle, AlertCircle
+  ArrowLeft, Upload, X, Loader2, CheckCircle, AlertCircle, Image as ImageIcon
 } from "lucide-react"
 
 const CATEGORIES = [
@@ -24,6 +24,7 @@ const CATEGORIES = [
 export default function AddItemPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
+  const fileInputRef = useRef<HTMLInputElement>(null)
   
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
@@ -31,10 +32,13 @@ export default function AddItemPage() {
   const [estimatedValue, setEstimatedValue] = useState("")
   const [startingBid, setStartingBid] = useState("")
   const [isFeatured, setIsFeatured] = useState(false)
-  const [photoUrls, setPhotoUrls] = useState<string[]>([])
-  const [newPhotoUrl, setNewPhotoUrl] = useState("")
+  
+  // Photo state
+  const [photos, setPhotos] = useState<File[]>([])
+  const [photoPreviewUrls, setPhotoPreviewUrls] = useState<string[]>([])
   
   const [submitting, setSubmitting] = useState(false)
+  const [uploadingPhotos, setUploadingPhotos] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState(false)
 
@@ -53,31 +57,79 @@ export default function AddItemPage() {
     return null
   }
 
-  const addPhotoUrl = () => {
-    if (newPhotoUrl && !photoUrls.includes(newPhotoUrl)) {
-      setPhotoUrls([...photoUrls, newPhotoUrl])
-      setNewPhotoUrl("")
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || [])
+    if (files.length + photos.length > 5) {
+      setError("Maximum 5 photos allowed")
+      return
     }
+
+    const newPhotos = [...photos, ...files]
+    setPhotos(newPhotos)
+
+    // Create preview URLs
+    const newUrls = files.map(file => URL.createObjectURL(file))
+    setPhotoPreviewUrls([...photoPreviewUrls, ...newUrls])
+    setError("")
   }
 
-  const removePhoto = (url: string) => {
-    setPhotoUrls(photoUrls.filter(p => p !== url))
+  const removePhoto = (index: number) => {
+    const newPhotos = photos.filter((_, i) => i !== index)
+    const newUrls = photoPreviewUrls.filter((_, i) => i !== index)
+    
+    // Revoke the URL to prevent memory leak
+    URL.revokeObjectURL(photoPreviewUrls[index])
+    
+    setPhotos(newPhotos)
+    setPhotoPreviewUrls(newUrls)
+  }
+
+  // Convert file to base64
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.readAsDataURL(file)
+      reader.onload = () => resolve(reader.result as string)
+      reader.onerror = (error) => reject(error)
+    })
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
+
+    // Validate
+    if (!title || !description || !category) {
+      setError("Title, description, and category are required")
+      return
+    }
+    if (photos.length === 0) {
+      setError("At least one photo is required")
+      return
+    }
+
     setSubmitting(true)
 
     try {
-      // Validate
-      if (!title || !description || !category) {
-        throw new Error("Title, description, and category are required")
-      }
-      if (photoUrls.length === 0) {
-        throw new Error("At least one photo is required")
+      // Step 1: Upload photos to Cloudinary
+      setUploadingPhotos(true)
+      const base64Images = await Promise.all(photos.map(fileToBase64))
+      
+      const uploadRes = await fetch("/api/upload", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ images: base64Images }),
+      })
+
+      if (!uploadRes.ok) {
+        const data = await uploadRes.json()
+        throw new Error(data.error || "Failed to upload images")
       }
 
+      const { urls: photoUrls } = await uploadRes.json()
+      setUploadingPhotos(false)
+
+      // Step 2: Create the item
       const res = await fetch("/api/items", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -105,6 +157,7 @@ export default function AddItemPage() {
 
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong")
+      setUploadingPhotos(false)
     } finally {
       setSubmitting(false)
     }
@@ -145,6 +198,64 @@ export default function AddItemPage() {
               <span>{error}</span>
             </div>
           )}
+
+          {/* Photos - Now with file picker */}
+          <div className="card p-6 space-y-4">
+            <h2 className="text-lg font-bold text-midnight">Photos</h2>
+            <p className="text-sm text-slate">
+              Upload up to 5 photos. First photo will be the main image. Images are automatically resized and optimized.
+            </p>
+
+            <div className="grid grid-cols-3 gap-4">
+              {/* Uploaded Photos */}
+              {photoPreviewUrls.map((url, index) => (
+                <div key={index} className="relative aspect-[4/3] bg-gray-100 rounded-xl overflow-hidden group">
+                  <img src={url} alt={`Photo ${index + 1}`} className="w-full h-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => removePhoto(index)}
+                    className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                  {index === 0 && (
+                    <div className="absolute bottom-2 left-2 badge badge-violet text-xs">
+                      Primary
+                    </div>
+                  )}
+                </div>
+              ))}
+
+              {/* Upload Button */}
+              {photos.length < 5 && (
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="aspect-[4/3] border-2 border-dashed border-slate-light/30 rounded-xl flex flex-col items-center justify-center text-silver hover:border-violet hover:text-violet transition-colors"
+                >
+                  <Upload className="w-8 h-8 mb-2" />
+                  <span className="text-sm font-medium">Add Photo</span>
+                </button>
+              )}
+            </div>
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handlePhotoUpload}
+              className="hidden"
+            />
+
+            {photos.length === 0 && (
+              <div className="border-2 border-dashed border-slate-light/30 rounded-xl p-8 text-center">
+                <ImageIcon className="w-12 h-12 text-silver mx-auto mb-3" />
+                <p className="text-slate font-medium">No photos added yet</p>
+                <p className="text-sm text-silver">Click the button above or drag & drop</p>
+              </div>
+            )}
+          </div>
 
           {/* Basic Info */}
           <div className="card p-6 space-y-4">
@@ -248,66 +359,6 @@ export default function AddItemPage() {
             </div>
           </div>
 
-          {/* Photos */}
-          <div className="card p-6 space-y-4">
-            <h2 className="text-lg font-bold text-midnight">Photos</h2>
-            <p className="text-sm text-slate">
-              Add photo URLs. For now, upload images to a service like Imgur or Cloudinary and paste the URL here.
-            </p>
-
-            <div className="flex gap-2">
-              <input
-                type="url"
-                value={newPhotoUrl}
-                onChange={(e) => setNewPhotoUrl(e.target.value)}
-                className="input flex-1"
-                placeholder="https://example.com/photo.jpg"
-              />
-              <button
-                type="button"
-                onClick={addPhotoUrl}
-                className="btn-primary flex items-center gap-2"
-              >
-                <Upload className="w-4 h-4" />
-                Add
-              </button>
-            </div>
-
-            {photoUrls.length > 0 && (
-              <div className="grid grid-cols-3 gap-4">
-                {photoUrls.map((url, index) => (
-                  <div key={index} className="relative aspect-[4/3] bg-gray-100 rounded-xl overflow-hidden group">
-                    {/* Using img tag for preview to allow any domain */}
-                    <img
-                      src={url}
-                      alt={`Photo ${index + 1}`}
-                      className="w-full h-full object-cover"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removePhoto(url)}
-                      className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                    {index === 0 && (
-                      <div className="absolute bottom-2 left-2 badge badge-violet text-xs">
-                        Primary
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {photoUrls.length === 0 && (
-              <div className="border-2 border-dashed border-slate-light/30 rounded-xl p-8 text-center">
-                <Upload className="w-8 h-8 text-silver mx-auto mb-2" />
-                <p className="text-slate">No photos added yet</p>
-              </div>
-            )}
-          </div>
-
           {/* Submit */}
           <div className="flex gap-4">
             <Link href="/admin" className="btn-outline flex-1 text-center">
@@ -321,7 +372,7 @@ export default function AddItemPage() {
               {submitting ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  Creating...
+                  {uploadingPhotos ? "Uploading photos..." : "Creating..."}
                 </>
               ) : (
                 "Create Item"
