@@ -71,12 +71,12 @@
 
 ## ✨ Features to Add (Year 1)
 
-- [ ] Bid confirmation popup: "Are you sure you want to bid $X on 'Item Name'?"
+- [x] ~~Bid confirmation popup~~ → Done
+- [x] ~~Admin payments table~~ → Done
 - [ ] Max characters for item description (with counter)
 - [ ] Phone number formatting with dashes (auto-format as user types)
 - [ ] Password reset functionality
 - [ ] Verify Resend domain for better email delivery
-- [ ] Admin payments table: show all won items, winner full names, payment status, "Mark Check Received" button
 
 ---
 
@@ -104,6 +104,9 @@
 - [x] User-submitted donations (`/donate` page)
 - [x] User dashboard shows bids and won items
 - [x] Navigation consistency (logo → dashboard when logged in)
+- [x] Bid confirmation popup
+- [x] Admin payments table with "Mark Check Received"
+- [x] Whole dollar prices only (no decimals)
 
 ---
 
