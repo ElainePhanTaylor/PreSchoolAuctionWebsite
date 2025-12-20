@@ -93,8 +93,8 @@ export default function AuctionPage() {
       <div className="bg-white/95 backdrop-blur-md border-b border-slate-light/10 sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-3">
           <div className="flex items-center gap-3">
-            {/* Home Link */}
-            <Link href="/" className="flex-shrink-0">
+            {/* Logo - goes to dashboard if logged in */}
+            <Link href={session ? "/dashboard" : "/"} className="flex-shrink-0">
               <Image 
                 src="/images/IMG_7446.jpeg" 
                 alt="Home" 

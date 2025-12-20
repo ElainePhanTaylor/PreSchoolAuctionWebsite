@@ -1,15 +1,20 @@
+"use client"
+
 import Link from "next/link";
 import Image from "next/image";
+import { useSession } from "next-auth/react";
 import { Sparkles, Heart, Gavel, Users, ArrowRight, Clock, TrendingUp } from "lucide-react";
 
 export default function Home() {
+  const { data: session } = useSession();
+
   return (
     <div className="min-h-screen gradient-mesh">
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="card-glass px-6 py-3 flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-2">
+            <Link href={session ? "/dashboard" : "/"} className="flex items-center gap-2">
               <Image
                 src="/images/IMG_7446.jpeg" 
                 alt="San Anselmo Cooperative Nursery School" 
@@ -26,14 +31,22 @@ export default function Home() {
                 How It Works
               </Link>
             </nav>
-            <div className="flex items-center gap-5">
-              <Link href="/login" className="text-2xl text-midnight font-semibold hover:text-violet transition-colors">
-                Log In
-              </Link>
-              <Link href="/register" className="btn-primary text-xl px-8 py-4">
-                Get Started
-              </Link>
-            </div>
+            {session ? (
+              <div className="flex items-center gap-5">
+                <Link href="/dashboard" className="btn-primary text-xl px-8 py-4">
+                  My Dashboard
+                </Link>
+              </div>
+            ) : (
+              <div className="flex items-center gap-5">
+                <Link href="/login" className="text-2xl text-midnight font-semibold hover:text-violet transition-colors">
+                  Log In
+                </Link>
+                <Link href="/register" className="btn-primary text-xl px-8 py-4">
+                  Get Started
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       </header>

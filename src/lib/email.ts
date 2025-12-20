@@ -87,23 +87,38 @@ export async function sendPaymentConfirmationEmail(
   paymentMethod: "STRIPE" | "CHECK"
 ) {
   try {
-    const methodText = paymentMethod === "STRIPE" 
-      ? "Your credit card payment has been processed." 
-      : "We've received your check payment request. Please mail your check as instructed."
+    const isStripe = paymentMethod === "STRIPE"
+    
+    const subject = isStripe 
+      ? `Payment confirmed for "${itemTitle}"`
+      : `Check Payment Instructions for "${itemTitle}"`
+    
+    const heading = isStripe ? "✅ Payment Confirmed" : "📝 Check Payment Instructions"
+    const headingColor = isStripe ? "#059669" : "#6366f1"
+    
+    const bodyContent = isStripe 
+      ? `<p>Your credit card payment has been processed successfully!</p>
+         <p><strong>Item:</strong> ${itemTitle}</p>
+         <p><strong>Amount Paid:</strong> $${amount}</p>
+         <h3 style="margin-top: 24px;">Next Steps</h3>
+         <p>We'll be in touch with pickup or delivery details for your item.</p>`
+      : `<p>Please mail your check to complete payment for your auction item.</p>
+         <p><strong>Item:</strong> ${itemTitle}</p>
+         <p><strong>Amount Due:</strong> $${amount}</p>
+         <h3 style="margin-top: 24px;">Check Details</h3>
+         <p><strong>Make check payable to:</strong> San Anselmo Cooperative Nursery School</p>
+         <p><strong>Mail to:</strong> 24 Myrtle Lane, San Anselmo, CA 94960</p>
+         <p><strong>Memo:</strong> ${itemTitle}</p>
+         <p style="color: #dc2626; margin-top: 16px;"><strong>Please mail within 14 days.</strong></p>`
 
     await resend.emails.send({
       from: FROM_EMAIL,
       to: toEmail,
-      subject: `Payment confirmed for "${itemTitle}"`,
+      subject,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #059669;">✅ Payment Confirmed</h2>
-          <p>Thank you for your payment!</p>
-          <p><strong>Item:</strong> ${itemTitle}</p>
-          <p><strong>Amount:</strong> $${amount}</p>
-          <p>${methodText}</p>
-          <h3 style="margin-top: 24px;">Next Steps</h3>
-          <p>We'll be in touch with pickup or delivery details for your item.</p>
+          <h2 style="color: ${headingColor};">${heading}</h2>
+          ${bodyContent}
           <p style="color: #64748b; font-size: 14px; margin-top: 24px;">
             Thank you for supporting San Anselmo Cooperative Nursery School!
           </p>

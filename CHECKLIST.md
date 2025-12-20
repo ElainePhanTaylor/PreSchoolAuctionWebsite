@@ -65,6 +65,7 @@
 - [ ] Dashboard logo click logs user out (should stay logged in)
 - [ ] Homepage doesn't show logged-in state (shows Login button when authenticated)
 - [ ] User dashboard doesn't show their bids
+- [ ] User dashboard doesn't show items won with payment links
 
 ---
 
@@ -75,6 +76,7 @@
 - [ ] Phone number formatting with dashes (auto-format as user types)
 - [ ] Password reset functionality
 - [ ] Verify Resend domain for better email delivery
+- [ ] Admin payments table: show all won items, winner full names, payment status, "Mark Check Received" button
 
 ---
 

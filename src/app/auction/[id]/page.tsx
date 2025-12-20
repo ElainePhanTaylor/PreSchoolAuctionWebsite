@@ -229,7 +229,7 @@ export default function ItemDetailPage() {
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-sm shadow-sm sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3">
+          <Link href={session ? "/dashboard" : "/"} className="flex items-center gap-3">
             <Image 
               src="/images/IMG_7446.jpeg" 
               alt="SACNS" 
@@ -241,7 +241,7 @@ export default function ItemDetailPage() {
           <div className="flex items-center gap-4">
             {session ? (
               <Link href="/dashboard" className="btn-primary">
-                Dashboard
+                My Dashboard
               </Link>
             ) : (
               <>
