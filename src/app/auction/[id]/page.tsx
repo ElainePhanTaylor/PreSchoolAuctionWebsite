@@ -48,6 +48,7 @@ export default function ItemDetailPage() {
   const [bidAmount, setBidAmount] = useState(0)
   const [bidStatus, setBidStatus] = useState<"idle" | "submitting" | "success" | "error">("idle")
   const [bidError, setBidError] = useState("")
+  const [showBidConfirm, setShowBidConfirm] = useState(false)
   
   const [paymentLoading, setPaymentLoading] = useState(false)
   const [checkInfo, setCheckInfo] = useState<{
@@ -90,7 +91,8 @@ export default function ItemDetailPage() {
     if (id) fetchData()
   }, [id])
 
-  const handleBid = async () => {
+  // Step 1: Validate and show confirmation
+  const handleBid = () => {
     if (!session) {
       router.push("/login")
       return
@@ -102,6 +104,13 @@ export default function ItemDetailPage() {
       return
     }
 
+    // Show confirmation popup
+    setShowBidConfirm(true)
+  }
+
+  // Step 2: Actually place the bid after confirmation
+  const confirmBid = async () => {
+    setShowBidConfirm(false)
     setBidStatus("submitting")
     setBidError("")
 
@@ -109,7 +118,7 @@ export default function ItemDetailPage() {
       const res = await fetch("/api/bids", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ itemId: id, amount: bidAmount }),
+        body: JSON.stringify({ itemId: id, amount: Math.floor(bidAmount) }),
       })
 
       const data = await res.json()
@@ -256,6 +265,57 @@ export default function ItemDetailPage() {
           </div>
         </div>
       </header>
+
+      {/* Bid Confirmation Modal */}
+      {showBidConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold text-midnight">Confirm Your Bid</h3>
+              <button 
+                onClick={() => setShowBidConfirm(false)}
+                className="p-1 hover:bg-gray-100 rounded-full text-gray-500"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-amber-800 font-medium">
+                    You are about to bid <span className="text-xl font-bold">${Math.floor(bidAmount)}</span>
+                  </p>
+                  <p className="text-amber-700 text-sm mt-1">
+                    on &ldquo;{item.title}&rdquo;
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <p className="text-sm text-slate mb-6">
+              By confirming, you agree to pay this amount if you win. Bids cannot be retracted.
+            </p>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowBidConfirm(false)}
+                className="flex-1 px-4 py-3 border-2 border-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmBid}
+                className="flex-1 px-4 py-3 bg-coral text-white rounded-xl font-semibold hover:bg-coral/90 transition-colors flex items-center justify-center gap-2"
+              >
+                <Gavel className="w-5 h-5" />
+                Confirm Bid
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Back Link */}
       <div className="max-w-6xl mx-auto px-4 py-4">

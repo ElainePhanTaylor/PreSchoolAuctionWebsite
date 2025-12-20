@@ -28,13 +28,17 @@ export async function POST(request: Request) {
     }
 
     // Upload to Cloudinary
+    console.log("Uploading", images.length, "images to Cloudinary...")
     const urls = await uploadImages(images)
+    console.log("Upload successful:", urls)
 
     return NextResponse.json({ urls })
   } catch (error) {
     console.error("Upload error:", error)
+    // Return more specific error message
+    const errorMessage = error instanceof Error ? error.message : "Failed to upload images"
     return NextResponse.json(
-      { error: "Failed to upload images" },
+      { error: errorMessage },
       { status: 500 }
     )
   }

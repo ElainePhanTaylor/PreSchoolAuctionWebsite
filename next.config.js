@@ -8,6 +8,12 @@ const nextConfig = {
       },
     ],
   },
+  // Allow larger API request bodies for image uploads
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '10mb',
+    },
+  },
 }
 
 module.exports = nextConfig

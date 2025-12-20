@@ -7,7 +7,7 @@ import Link from "next/link"
 import { 
   Trees, Package, CreditCard, 
   Settings, AlertCircle, Eye, Trash2,
-  Plus, Loader2
+  Plus, Loader2, CheckCircle, Clock, DollarSign, Mail, Phone
 } from "lucide-react"
 
 interface AuctionItem {
@@ -22,6 +22,35 @@ interface AuctionItem {
   photos: { url: string }[]
 }
 
+interface PaymentItem {
+  itemId: string
+  itemTitle: string
+  itemPhoto: string | null
+  winningBid: number
+  winner: {
+    id: string
+    name: string
+    displayName: string
+    email: string
+    phone: string | null
+  } | null
+  payment: {
+    id: string
+    status: "PENDING" | "COMPLETED"
+    method: "STRIPE" | "CHECK" | null
+    amount: number
+    updatedAt: string
+  } | null
+}
+
+interface PaymentStats {
+  totalSold: number
+  totalPaid: number
+  totalPending: number
+  totalRevenue: number
+  expectedRevenue: number
+}
+
 type Tab = "overview" | "items" | "payments" | "settings"
 
 export default function AdminPage() {
@@ -31,6 +60,12 @@ export default function AdminPage() {
   const [items, setItems] = useState<AuctionItem[]>([])
   const [loading, setLoading] = useState(true)
   const [endingAuction, setEndingAuction] = useState(false)
+  
+  // Payment tracking state
+  const [payments, setPayments] = useState<PaymentItem[]>([])
+  const [paymentStats, setPaymentStats] = useState<PaymentStats | null>(null)
+  const [paymentsLoading, setPaymentsLoading] = useState(false)
+  const [updatingPayment, setUpdatingPayment] = useState<string | null>(null)
 
   // Fetch items
   useEffect(() => {
@@ -49,6 +84,57 @@ export default function AdminPage() {
     }
     fetchItems()
   }, [])
+
+  // Fetch payments when payments tab is active
+  useEffect(() => {
+    if (activeTab !== "payments") return
+    
+    async function fetchPayments() {
+      setPaymentsLoading(true)
+      try {
+        const res = await fetch("/api/admin/payments")
+        if (res.ok) {
+          const data = await res.json()
+          setPayments(data.payments)
+          setPaymentStats(data.stats)
+        }
+      } catch (error) {
+        console.error("Failed to fetch payments:", error)
+      } finally {
+        setPaymentsLoading(false)
+      }
+    }
+    fetchPayments()
+  }, [activeTab])
+
+  // Mark check payment as received
+  const handleMarkPayment = async (itemId: string, action: "mark_received" | "mark_pending") => {
+    setUpdatingPayment(itemId)
+    try {
+      const res = await fetch("/api/admin/payments", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ itemId, action }),
+      })
+      
+      if (res.ok) {
+        // Refresh payments
+        const refreshRes = await fetch("/api/admin/payments")
+        if (refreshRes.ok) {
+          const data = await refreshRes.json()
+          setPayments(data.payments)
+          setPaymentStats(data.stats)
+        }
+      } else {
+        const data = await res.json()
+        alert(data.error || "Failed to update payment")
+      }
+    } catch {
+      alert("Failed to update payment")
+    } finally {
+      setUpdatingPayment(null)
+    }
+  }
 
   // Delete item handler
   const handleDelete = async (itemId: string) => {
@@ -298,13 +384,153 @@ export default function AdminPage() {
             {activeTab === "payments" && (
               <div className="space-y-6">
                 <h1 className="text-2xl font-bold text-text">Payment Tracking</h1>
-                <div className="card p-8 text-center text-text-muted">
-                  <CreditCard className="w-12 h-12 mx-auto mb-4 opacity-30" />
-                  <p className="font-medium">Payments will be tracked here after auction ends</p>
-                  <p className="text-sm mt-2">
-                    Winners will pay via Stripe or check. You&apos;ll see all payment status here.
-                  </p>
-                </div>
+
+                {/* Stats */}
+                {paymentStats && (
+                  <div className="grid grid-cols-4 gap-4">
+                    <div className="card p-4">
+                      <p className="text-sm text-text-muted">Items Sold</p>
+                      <p className="text-2xl font-bold text-text">{paymentStats.totalSold}</p>
+                    </div>
+                    <div className="card p-4">
+                      <p className="text-sm text-text-muted">Paid</p>
+                      <p className="text-2xl font-bold text-green-600">{paymentStats.totalPaid}</p>
+                    </div>
+                    <div className="card p-4">
+                      <p className="text-sm text-text-muted">Pending</p>
+                      <p className="text-2xl font-bold text-amber-600">{paymentStats.totalPending}</p>
+                    </div>
+                    <div className="card p-4">
+                      <p className="text-sm text-text-muted">Revenue</p>
+                      <p className="text-2xl font-bold text-green-600">
+                        ${paymentStats.totalRevenue}
+                        <span className="text-sm font-normal text-text-muted"> / ${paymentStats.expectedRevenue}</span>
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {paymentsLoading ? (
+                  <div className="card p-8 flex items-center justify-center">
+                    <Loader2 className="w-6 h-6 animate-spin text-violet" />
+                    <span className="ml-2 text-text-muted">Loading payments...</span>
+                  </div>
+                ) : payments.length === 0 ? (
+                  <div className="card p-8 text-center text-text-muted">
+                    <CreditCard className="w-12 h-12 mx-auto mb-4 opacity-30" />
+                    <p className="font-medium">No sold items yet</p>
+                    <p className="text-sm mt-2">
+                      After ending the auction, sold items and payment status will appear here.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="card overflow-hidden">
+                    <table className="w-full">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="text-left p-4 text-sm font-medium text-text-muted">Item</th>
+                          <th className="text-left p-4 text-sm font-medium text-text-muted">Winner</th>
+                          <th className="text-left p-4 text-sm font-medium text-text-muted">Contact</th>
+                          <th className="text-left p-4 text-sm font-medium text-text-muted">Amount</th>
+                          <th className="text-left p-4 text-sm font-medium text-text-muted">Status</th>
+                          <th className="text-left p-4 text-sm font-medium text-text-muted">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y">
+                        {payments.map((payment) => (
+                          <tr key={payment.itemId} className="hover:bg-gray-50">
+                            <td className="p-4">
+                              <div className="flex items-center gap-3">
+                                {payment.itemPhoto && (
+                                  <img 
+                                    src={payment.itemPhoto} 
+                                    alt="" 
+                                    className="w-10 h-10 rounded-lg object-cover"
+                                  />
+                                )}
+                                <span className="font-medium text-text">{payment.itemTitle}</span>
+                              </div>
+                            </td>
+                            <td className="p-4">
+                              {payment.winner ? (
+                                <div>
+                                  <p className="font-medium text-text">{payment.winner.name}</p>
+                                  <p className="text-xs text-text-muted">@{payment.winner.displayName}</p>
+                                </div>
+                              ) : (
+                                <span className="text-text-muted">—</span>
+                              )}
+                            </td>
+                            <td className="p-4">
+                              {payment.winner ? (
+                                <div className="space-y-1">
+                                  <a 
+                                    href={`mailto:${payment.winner.email}`}
+                                    className="flex items-center gap-1 text-sm text-violet hover:underline"
+                                  >
+                                    <Mail className="w-3 h-3" />
+                                    {payment.winner.email}
+                                  </a>
+                                  {payment.winner.phone && (
+                                    <a 
+                                      href={`tel:${payment.winner.phone}`}
+                                      className="flex items-center gap-1 text-sm text-text-muted hover:text-violet"
+                                    >
+                                      <Phone className="w-3 h-3" />
+                                      {payment.winner.phone}
+                                    </a>
+                                  )}
+                                </div>
+                              ) : (
+                                <span className="text-text-muted">—</span>
+                              )}
+                            </td>
+                            <td className="p-4 font-semibold text-text">
+                              ${payment.winningBid}
+                            </td>
+                            <td className="p-4">
+                              {payment.payment?.status === "COMPLETED" ? (
+                                <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                                  <CheckCircle className="w-3 h-3" />
+                                  {payment.payment.method === "STRIPE" ? "Paid (Card)" : "Paid (Check)"}
+                                </span>
+                              ) : payment.payment?.status === "PENDING" ? (
+                                <span className="inline-flex items-center gap-1 px-2 py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-medium">
+                                  <Clock className="w-3 h-3" />
+                                  {payment.payment.method === "CHECK" ? "Check Pending" : "Pending"}
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-medium">
+                                  <DollarSign className="w-3 h-3" />
+                                  Not Started
+                                </span>
+                              )}
+                            </td>
+                            <td className="p-4">
+                              {payment.payment?.status === "COMPLETED" ? (
+                                <button
+                                  onClick={() => handleMarkPayment(payment.itemId, "mark_pending")}
+                                  disabled={updatingPayment === payment.itemId}
+                                  className="text-xs text-text-muted hover:text-red-600 disabled:opacity-50"
+                                >
+                                  {updatingPayment === payment.itemId ? "..." : "Undo"}
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={() => handleMarkPayment(payment.itemId, "mark_received")}
+                                  disabled={updatingPayment === payment.itemId}
+                                  className="px-3 py-1 bg-green-600 text-white text-xs rounded-lg hover:bg-green-700 disabled:opacity-50"
+                                >
+                                  {updatingPayment === payment.itemId ? "..." : "Mark Received"}
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </div>
             )}
 

@@ -84,13 +84,44 @@ export default function AddItemPage() {
     setPhotoPreviewUrls(newUrls)
   }
 
-  // Convert file to base64
-  const fileToBase64 = (file: File): Promise<string> => {
+  // Compress and convert file to base64
+  const compressAndConvertToBase64 = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
+      const img = document.createElement('img')
+      const canvas = document.createElement('canvas')
       const reader = new FileReader()
+
+      reader.onload = (e) => {
+        img.onload = () => {
+          // Calculate new dimensions (max 800px to stay under Cloudinary 10MB limit)
+          let { width, height } = img
+          const maxSize = 800
+
+          if (width > maxSize || height > maxSize) {
+            if (width > height) {
+              height = (height / width) * maxSize
+              width = maxSize
+            } else {
+              width = (width / height) * maxSize
+              height = maxSize
+            }
+          }
+
+          canvas.width = width
+          canvas.height = height
+
+          const ctx = canvas.getContext('2d')
+          ctx?.drawImage(img, 0, 0, width, height)
+
+          // Convert to JPEG at 70% quality (keeps file under 10MB)
+          const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7)
+          resolve(compressedBase64)
+        }
+        img.onerror = reject
+        img.src = e.target?.result as string
+      }
+      reader.onerror = reject
       reader.readAsDataURL(file)
-      reader.onload = () => resolve(reader.result as string)
-      reader.onerror = (error) => reject(error)
     })
   }
 
@@ -111,9 +142,9 @@ export default function AddItemPage() {
     setSubmitting(true)
 
     try {
-      // Step 1: Upload photos to Cloudinary
+      // Step 1: Compress and upload photos to Cloudinary
       setUploadingPhotos(true)
-      const base64Images = await Promise.all(photos.map(fileToBase64))
+      const base64Images = await Promise.all(photos.map(compressAndConvertToBase64))
       
       const uploadRes = await fetch("/api/upload", {
         method: "POST",
@@ -320,7 +351,7 @@ export default function AddItemPage() {
                   className="input"
                   placeholder="e.g., 500"
                   min="0"
-                  step="0.01"
+                  step="1"
                 />
               </div>
             </div>
@@ -337,7 +368,7 @@ export default function AddItemPage() {
                   className="input"
                   placeholder="Leave blank to auto-calculate (50% of value)"
                   min="0"
-                  step="0.01"
+                  step="1"
                 />
                 <p className="text-xs text-silver mt-1">
                   If blank, will be set to 50% of estimated value or $25
