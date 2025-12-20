@@ -62,10 +62,10 @@
 
 ## 🐛 Bugs to Fix
 
-- [ ] Dashboard logo click logs user out (should stay logged in)
-- [ ] Homepage doesn't show logged-in state (shows Login button when authenticated)
-- [ ] User dashboard doesn't show their bids
-- [ ] User dashboard doesn't show items won with payment links
+- [x] ~~Dashboard logo click logs user out~~ → Fixed: goes to dashboard
+- [x] ~~Homepage doesn't show logged-in state~~ → Fixed: shows "My Dashboard" button
+- [x] ~~User dashboard doesn't show their bids~~ → Fixed
+- [x] ~~User dashboard doesn't show items won with payment links~~ → Fixed
 
 ---
 
@@ -82,8 +82,6 @@
 
 ## 📅 Deferred to Future Years
 
-- [ ] User-submitted donations (`/donate` page - already built)
-- [ ] Local file upload for images (Cloudinary integration)
 - [ ] SMS notifications
 - [ ] Watchlist feature
 - [ ] "Buy Now" option
@@ -102,6 +100,10 @@
 - [x] First/Last name on registration
 - [x] Phone number required
 - [x] Unique display names
+- [x] Cloudinary image upload (auto-resize & optimize)
+- [x] User-submitted donations (`/donate` page)
+- [x] User dashboard shows bids and won items
+- [x] Navigation consistency (logo → dashboard when logged in)
 
 ---
 
