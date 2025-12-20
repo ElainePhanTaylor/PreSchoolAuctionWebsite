@@ -5,12 +5,12 @@ import { isAdminEmail } from "@/lib/auth"
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, username, phone, password } = await request.json()
+    const { firstName, lastName, email, username, phone, password } = await request.json()
 
     // Validation
-    if (!email || !username || !password) {
+    if (!firstName || !lastName || !email || !username || !phone || !password) {
       return NextResponse.json(
-        { error: "Email, username, and password are required" },
+        { error: "All fields are required" },
         { status: 400 }
       )
     }
@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
 
     if (existingUsername) {
       return NextResponse.json(
-        { error: "This display name is already taken" },
+        { error: "This name is unavailable" },
         { status: 400 }
       )
     }
@@ -55,9 +55,11 @@ export async function POST(request: NextRequest) {
     // Create user
     const user = await prisma.user.create({
       data: {
+        firstName,
+        lastName,
         email: email.toLowerCase(),
         username,
-        phone: phone || null,
+        phone,
         passwordHash,
         isAdmin,
       },

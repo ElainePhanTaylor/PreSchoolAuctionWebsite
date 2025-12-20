@@ -2,7 +2,9 @@ import { Resend } from "resend"
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
-const FROM_EMAIL = "SACNS Auction <auction@sacns.org>"
+// Use Resend's test email until domain is verified
+// Change to "SACNS Auction <auction@sacns.org>" after verifying domain
+const FROM_EMAIL = "SACNS Auction <onboarding@resend.dev>"
 const SITE_URL = process.env.NEXTAUTH_URL || "http://localhost:3000"
 
 // Send outbid notification
@@ -47,7 +49,8 @@ export async function sendWinnerEmail(
   itemId: string
 ) {
   try {
-    await resend.emails.send({
+    console.log(`Attempting to send winner email to: ${toEmail}`)
+    const result = await resend.emails.send({
       from: FROM_EMAIL,
       to: toEmail,
       subject: `Congratulations! You won "${itemTitle}"`,
@@ -70,9 +73,9 @@ export async function sendWinnerEmail(
         </div>
       `,
     })
-    console.log(`Winner email sent to ${toEmail}`)
+    console.log(`Winner email result for ${toEmail}:`, JSON.stringify(result))
   } catch (error) {
-    console.error("Failed to send winner email:", error)
+    console.error(`Failed to send winner email to ${toEmail}:`, error)
   }
 }
 

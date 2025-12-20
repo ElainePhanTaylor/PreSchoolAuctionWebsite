@@ -9,6 +9,8 @@ import { Mail, Lock, User, Phone, AlertCircle, CheckCircle, ArrowLeft } from "lu
 export default function RegisterPage() {
   const router = useRouter()
   const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
     email: "",
     username: "",
     phone: "",
@@ -43,6 +45,8 @@ export default function RegisterPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          firstName: formData.firstName,
+          lastName: formData.lastName,
           email: formData.email,
           username: formData.username,
           phone: formData.phone,
@@ -104,6 +108,39 @@ export default function RegisterPage() {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label htmlFor="firstName" className="block text-sm font-semibold text-midnight mb-2">
+                    First Name
+                  </label>
+                  <input
+                    id="firstName"
+                    name="firstName"
+                    type="text"
+                    value={formData.firstName}
+                    onChange={handleChange}
+                    className="input"
+                    placeholder="First"
+                    required
+                  />
+                </div>
+                <div>
+                  <label htmlFor="lastName" className="block text-sm font-semibold text-midnight mb-2">
+                    Last Name
+                  </label>
+                  <input
+                    id="lastName"
+                    name="lastName"
+                    type="text"
+                    value={formData.lastName}
+                    onChange={handleChange}
+                    className="input"
+                    placeholder="Last"
+                    required
+                  />
+                </div>
+              </div>
+
               <div>
                 <label htmlFor="email" className="block text-sm font-semibold text-midnight mb-2">
                   Email
@@ -116,7 +153,7 @@ export default function RegisterPage() {
                     type="email"
                     value={formData.email}
                     onChange={handleChange}
-                    className="input pl-12"
+                    className="input !pl-12"
                     placeholder="you@example.com"
                     required
                   />
@@ -135,7 +172,7 @@ export default function RegisterPage() {
                     type="text"
                     value={formData.username}
                     onChange={handleChange}
-                    className="input pl-12"
+                    className="input !pl-12"
                     placeholder="How others will see you"
                     required
                   />
@@ -154,7 +191,7 @@ export default function RegisterPage() {
                     type="tel"
                     value={formData.phone}
                     onChange={handleChange}
-                    className="input pl-12"
+                    className="input !pl-12"
                     placeholder="(415) 555-0123"
                     required
                   />
@@ -173,7 +210,7 @@ export default function RegisterPage() {
                     type="password"
                     value={formData.password}
                     onChange={handleChange}
-                    className="input pl-12"
+                    className="input !pl-12"
                     placeholder="At least 8 characters"
                     required
                     minLength={8}
@@ -193,7 +230,7 @@ export default function RegisterPage() {
                     type="password"
                     value={formData.confirmPassword}
                     onChange={handleChange}
-                    className="input pl-12"
+                    className="input !pl-12"
                     placeholder="Confirm your password"
                     required
                   />

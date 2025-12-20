@@ -1,6 +1,8 @@
-# Auction Site Test Checklist
+# Auction Site Checklist
 
-## Pre-Launch Testing
+---
+
+## 🧪 Pre-Launch Testing
 
 ### Authentication
 - [ ] Register new account
@@ -43,7 +45,7 @@
 - [ ] Can set minimum bid increment
 - [ ] Can set anti-sniping minutes
 
-### Payments (after Stripe setup)
+### Payments
 - [ ] Winner sees "Pay Now" button
 - [ ] Stripe checkout loads correct amount
 - [ ] Successful payment recorded
@@ -51,24 +53,66 @@
 - [ ] Cannot pay for item you didn't win
 - [ ] Check payment option available
 
-### Emails (after Resend setup)
+### Emails
 - [ ] Outbid notification sent
 - [ ] Winner notification sent
 - [ ] Payment confirmation sent
 
 ---
 
-## Test Accounts
+## 🐛 Bugs to Fix
 
-| Role | Email | Password |
-|------|-------|----------|
-| Admin | (your admin email) | ******** |
-| User 1 | test1@example.com | ******** |
-| User 2 | test2@example.com | ******** |
+- [ ] Dashboard logo click logs user out (should stay logged in)
+- [ ] Homepage doesn't show logged-in state (shows Login button when authenticated)
+- [ ] User dashboard doesn't show their bids
 
 ---
 
-## Notes
+## ✨ Features to Add (Year 1)
+
+- [ ] Bid confirmation popup: "Are you sure you want to bid $X on 'Item Name'?"
+- [ ] Max characters for item description (with counter)
+- [ ] Phone number formatting with dashes (auto-format as user types)
+- [ ] Password reset functionality
+- [ ] Verify Resend domain for better email delivery
+
+---
+
+## 📅 Deferred to Future Years
+
+- [ ] User-submitted donations (`/donate` page - already built)
+- [ ] Local file upload for images (Cloudinary integration)
+- [ ] SMS notifications
+- [ ] Watchlist feature
+- [ ] "Buy Now" option
+- [ ] Social sharing
+
+---
+
+## ✅ Completed
+
+- [x] Stripe Checkout integration
+- [x] Check payment option
+- [x] Email notifications (Resend)
+- [x] End Auction & Notify Winners
+- [x] Prevent bidding against yourself
+- [x] Anti-sniping logic
+- [x] First/Last name on registration
+- [x] Phone number required
+- [x] Unique display names
+
+---
+
+## 📝 Test Accounts
+
+| Role | Email | Password |
+|------|-------|----------|
+| Admin | elainph@gmail.com | ******** |
+| User 1 | (your test email) | ******** |
+
+---
+
+## 🗒️ Notes
 _Add any bugs or issues found during testing:_
 
 - 
