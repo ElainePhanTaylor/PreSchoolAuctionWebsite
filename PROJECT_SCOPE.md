@@ -148,7 +148,6 @@ Users can contribute items to the auction:
 - Admins can add items directly on behalf of donors (for drop-off donations where the donor doesn't want to upload themselves)
 - **Initial Admin Emails:**
   - elainph@gmail.com
-  - Taylor.andreas.elaine@Gmail.com
 
 ---
 
@@ -204,9 +203,51 @@ Users can contribute items to the auction:
 | **Item pickup** | At school, or mailing for those farther away |
 | **Categories** | Experiences, Gift Cards, Home & Household, Services, Handmade, Art, Food & Dining, Sports, Kids, Other |
 | **Registration fields** | Email, password, username (display name), phone |
-| **Initial admins** | elainph@gmail.com, Taylor.andreas.elaine@Gmail.com |
+| **Initial admins** | elainph@gmail.com |
 
 *All questions answered — scope complete!* ✅
+
+---
+
+## External Services Required
+
+This site depends on the following external services to run:
+
+| Service | Purpose | Dashboard URL |
+|---------|---------|---------------|
+| **PostgreSQL** | Database (users, items, bids, payments) | Hosted on Railway |
+| **Stripe** | Credit card payment processing | [dashboard.stripe.com](https://dashboard.stripe.com) |
+| **Cloudinary** | Image upload, storage & optimization | [console.cloudinary.com](https://console.cloudinary.com) |
+| **Resend** | Transactional emails (outbid, winner, payment) | [resend.com](https://resend.com) |
+
+### Environment Variables Required
+
+```env
+# Database
+DATABASE_URL="postgresql://..."
+
+# NextAuth
+NEXTAUTH_SECRET="your-secret-key"
+NEXTAUTH_URL="http://localhost:3000"  # or production URL
+
+# Stripe
+STRIPE_SECRET_KEY="sk_..."
+STRIPE_PUBLISHABLE_KEY="pk_..."
+STRIPE_WEBHOOK_SECRET="whsec_..."
+
+# Cloudinary
+CLOUDINARY_CLOUD_NAME="your-cloud-name"
+CLOUDINARY_API_KEY="your-api-key"
+CLOUDINARY_API_SECRET="your-api-secret"
+
+# Resend (Email)
+RESEND_API_KEY="re_..."
+```
+
+### Notes
+- **Resend**: Currently using test sender (`onboarding@resend.dev`). Verify a domain to use a custom "from" address.
+- **Stripe**: Use test keys (`sk_test_...`) for development. Switch to live keys for production.
+- **Cloudinary**: Images are auto-optimized to max 800x600 and converted to WebP.
 
 ---
 

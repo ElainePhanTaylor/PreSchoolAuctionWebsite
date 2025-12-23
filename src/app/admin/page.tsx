@@ -7,7 +7,8 @@ import Link from "next/link"
 import { 
   Trees, Package, CreditCard, 
   Settings, AlertCircle, Eye, Trash2,
-  Plus, Loader2, CheckCircle, Clock, DollarSign, Mail, Phone
+  Plus, Loader2, CheckCircle, Clock, DollarSign, Mail, Phone,
+  Gift, Check, X
 } from "lucide-react"
 
 interface AuctionItem {
@@ -51,7 +52,26 @@ interface PaymentStats {
   expectedRevenue: number
 }
 
-type Tab = "overview" | "items" | "payments" | "settings"
+interface PendingDonation {
+  id: string
+  title: string
+  description: string
+  category: string
+  estimatedValue: number | null
+  startingBid: number
+  donorName: string | null
+  createdAt: string
+  photos: { url: string }[]
+  donor: {
+    id: string
+    firstName: string
+    lastName: string
+    email: string
+    username: string
+  }
+}
+
+type Tab = "overview" | "items" | "donations" | "payments" | "settings"
 
 export default function AdminPage() {
   const { data: session, status } = useSession()
@@ -67,22 +87,36 @@ export default function AdminPage() {
   const [paymentsLoading, setPaymentsLoading] = useState(false)
   const [updatingPayment, setUpdatingPayment] = useState<string | null>(null)
 
-  // Fetch items
+  // Pending donations state
+  const [pendingDonations, setPendingDonations] = useState<PendingDonation[]>([])
+  const [donationsLoading, setDonationsLoading] = useState(false)
+  const [updatingDonation, setUpdatingDonation] = useState<string | null>(null)
+
+  // Fetch items and pending donations count on load
   useEffect(() => {
-    async function fetchItems() {
+    async function fetchData() {
       try {
-        const res = await fetch("/api/items?status=APPROVED")
-        if (res.ok) {
-          const data = await res.json()
+        const [itemsRes, donationsRes] = await Promise.all([
+          fetch("/api/items?status=APPROVED"),
+          fetch("/api/admin/donations")
+        ])
+        
+        if (itemsRes.ok) {
+          const data = await itemsRes.json()
           setItems(data)
         }
+        
+        if (donationsRes.ok) {
+          const data = await donationsRes.json()
+          setPendingDonations(data.items)
+        }
       } catch (error) {
-        console.error("Failed to fetch items:", error)
+        console.error("Failed to fetch data:", error)
       } finally {
         setLoading(false)
       }
     }
-    fetchItems()
+    fetchData()
   }, [])
 
   // Fetch payments when payments tab is active
@@ -106,6 +140,58 @@ export default function AdminPage() {
     }
     fetchPayments()
   }, [activeTab])
+
+  // Fetch pending donations when donations tab is active
+  useEffect(() => {
+    if (activeTab !== "donations") return
+    
+    async function fetchDonations() {
+      setDonationsLoading(true)
+      try {
+        const res = await fetch("/api/admin/donations")
+        if (res.ok) {
+          const data = await res.json()
+          setPendingDonations(data.items)
+        }
+      } catch (error) {
+        console.error("Failed to fetch donations:", error)
+      } finally {
+        setDonationsLoading(false)
+      }
+    }
+    fetchDonations()
+  }, [activeTab])
+
+  // Handle donation approval/rejection
+  const handleDonationAction = async (itemId: string, action: "approve" | "reject") => {
+    setUpdatingDonation(itemId)
+    try {
+      const res = await fetch("/api/admin/donations", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ itemId, action }),
+      })
+      
+      if (res.ok) {
+        // Remove from pending list
+        setPendingDonations(pendingDonations.filter(d => d.id !== itemId))
+        // If approved, refresh the items list
+        if (action === "approve") {
+          const itemsRes = await fetch("/api/items?status=APPROVED")
+          if (itemsRes.ok) {
+            setItems(await itemsRes.json())
+          }
+        }
+      } else {
+        const data = await res.json()
+        alert(data.error || "Failed to update donation")
+      }
+    } catch {
+      alert("Failed to update donation")
+    } finally {
+      setUpdatingDonation(null)
+    }
+  }
 
   // Mark check payment as received
   const handleMarkPayment = async (itemId: string, action: "mark_received" | "mark_pending") => {
@@ -224,6 +310,7 @@ export default function AdminPage() {
 
   const tabs = [
     { id: "items", label: "Items", icon: Package },
+    { id: "donations", label: "Donations", icon: Gift },
     { id: "payments", label: "Payments", icon: CreditCard },
     { id: "settings", label: "Settings", icon: Settings },
   ]
@@ -270,6 +357,13 @@ export default function AdminPage() {
                       activeTab === tab.id ? "bg-white/20" : "bg-violet/20 text-violet"
                     }`}>
                       {items.length}
+                    </span>
+                  )}
+                  {tab.id === "donations" && pendingDonations.length > 0 && (
+                    <span className={`ml-auto text-xs px-2 py-0.5 rounded-full ${
+                      activeTab === tab.id ? "bg-white/20" : "bg-amber-100 text-amber-700"
+                    }`}>
+                      {pendingDonations.length}
                     </span>
                   )}
                 </button>
@@ -376,6 +470,105 @@ export default function AdminPage() {
                         ))}
                       </tbody>
                     </table>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === "donations" && (
+              <div className="space-y-6">
+                <h1 className="text-2xl font-bold text-text">Pending Donations</h1>
+                <p className="text-text-muted">
+                  Review and approve items submitted by users. Approved items will appear in the auction.
+                </p>
+
+                {donationsLoading ? (
+                  <div className="card p-8 flex items-center justify-center">
+                    <Loader2 className="w-6 h-6 animate-spin text-violet" />
+                    <span className="ml-2 text-text-muted">Loading donations...</span>
+                  </div>
+                ) : pendingDonations.length === 0 ? (
+                  <div className="card p-8 text-center text-text-muted">
+                    <Gift className="w-12 h-12 mx-auto mb-4 opacity-30" />
+                    <p className="font-medium">No pending donations</p>
+                    <p className="text-sm mt-2">
+                      When users submit items to donate, they&apos;ll appear here for review.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {pendingDonations.map((donation) => (
+                      <div key={donation.id} className="card p-6">
+                        <div className="flex gap-6">
+                          {/* Photo */}
+                          <div className="w-32 h-32 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden">
+                            {donation.photos[0]?.url ? (
+                              <img 
+                                src={donation.photos[0].url} 
+                                alt={donation.title}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                <Package className="w-8 h-8" />
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Details */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-4">
+                              <div>
+                                <h3 className="text-lg font-bold text-text">{donation.title}</h3>
+                                <p className="text-sm text-text-muted mt-1">
+                                  {donation.category.replace("_", " ")} • 
+                                  {donation.estimatedValue && ` Est. $${donation.estimatedValue} •`}
+                                  {" "}Starting at ${donation.startingBid}
+                                </p>
+                              </div>
+                              <div className="flex gap-2 flex-shrink-0">
+                                <button
+                                  onClick={() => handleDonationAction(donation.id, "approve")}
+                                  disabled={updatingDonation === donation.id}
+                                  className="flex items-center gap-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 font-medium"
+                                >
+                                  {updatingDonation === donation.id ? (
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                  ) : (
+                                    <Check className="w-4 h-4" />
+                                  )}
+                                  Approve
+                                </button>
+                                <button
+                                  onClick={() => handleDonationAction(donation.id, "reject")}
+                                  disabled={updatingDonation === donation.id}
+                                  className="flex items-center gap-1 px-4 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 disabled:opacity-50 font-medium"
+                                >
+                                  <X className="w-4 h-4" />
+                                  Reject
+                                </button>
+                              </div>
+                            </div>
+
+                            <p className="text-sm text-text mt-3 line-clamp-2">{donation.description}</p>
+
+                            <div className="flex items-center gap-4 mt-4 pt-4 border-t text-sm text-text-muted">
+                              <div>
+                                <span className="font-medium text-text">Donated by:</span>{" "}
+                                {donation.donorName || `${donation.donor.firstName} ${donation.donor.lastName}`}
+                              </div>
+                              <div>
+                                <span className="font-medium text-text">Submitted by:</span>{" "}
+                                {donation.donor.firstName} {donation.donor.lastName} ({donation.donor.email})
+                              </div>
+                              <div className="ml-auto">
+                                {new Date(donation.createdAt).toLocaleDateString()}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
