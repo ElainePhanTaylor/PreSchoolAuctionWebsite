@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { ItemStatus, Category } from "@prisma/client"
 
 export async function POST(request: Request) {
   try {
@@ -78,8 +79,8 @@ export async function GET(request: Request) {
 
     const items = await prisma.item.findMany({
       where: {
-        status: status as any,
-        ...(category && category !== "ALL" && { category: category as any }),
+        status: status as ItemStatus,
+        ...(category && category !== "ALL" && { category: category as Category }),
         ...(search && {
           OR: [
             { title: { contains: search, mode: "insensitive" } },

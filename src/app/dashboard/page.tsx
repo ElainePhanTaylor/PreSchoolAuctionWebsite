@@ -94,7 +94,7 @@ export default function DashboardPage() {
     return null
   }
 
-  const isAdmin = (session.user as any)?.isAdmin
+  const isAdmin = (session.user as { isAdmin?: boolean })?.isAdmin
   const stats = dashboardData?.stats || { activeBids: 0, itemsWon: 0, itemsWinning: 0 }
 
   return (

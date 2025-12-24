@@ -11,6 +11,7 @@ interface FeaturedItem {
   title: string;
   currentBid: number | null;
   startingBid: number;
+  isFeatured: boolean;
   photos: { url: string }[];
   _count: { bids: number };
 }
@@ -27,7 +28,7 @@ export default function Home() {
         if (res.ok) {
           const items = await res.json();
           // Sort: featured items first, then by date
-          const sorted = items.sort((a: any, b: any) => {
+          const sorted = items.sort((a: FeaturedItem, b: FeaturedItem) => {
             if (a.isFeatured && !b.isFeatured) return -1;
             if (!a.isFeatured && b.isFeatured) return 1;
             return 0;

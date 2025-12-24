@@ -370,7 +370,7 @@ export default function AdminPage() {
     return null
   }
 
-  const isAdmin = (session?.user as any)?.isAdmin
+  const isAdmin = (session?.user as { isAdmin?: boolean })?.isAdmin
   if (!isAdmin) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
