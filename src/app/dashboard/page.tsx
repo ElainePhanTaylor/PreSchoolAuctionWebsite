@@ -145,28 +145,28 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        {/* Quick Stats */}
-        <div className="grid grid-cols-3 gap-4 mb-8">
-          <div className="card p-6 text-center">
-            <div className="w-12 h-12 rounded-xl bg-coral/10 flex items-center justify-center mx-auto mb-3">
-              <TrendingUp className="w-6 h-6 text-coral" />
+        {/* Quick Stats - Compact */}
+        <div className="grid grid-cols-3 gap-3 mb-6">
+          <div className="card p-3 text-center">
+            <div className="flex items-center justify-center gap-2">
+              <TrendingUp className="w-4 h-4 text-coral" />
+              <p className="text-xl font-bold text-midnight">{stats.activeBids}</p>
             </div>
-            <p className="text-3xl font-extrabold text-midnight">{stats.activeBids}</p>
-            <p className="text-silver text-sm font-medium">Active Bids</p>
+            <p className="text-silver text-xs font-medium">Active Bids</p>
           </div>
-          <div className="card p-6 text-center">
-            <div className="w-12 h-12 rounded-xl bg-teal/10 flex items-center justify-center mx-auto mb-3">
-              <Gavel className="w-6 h-6 text-teal" />
+          <div className="card p-3 text-center">
+            <div className="flex items-center justify-center gap-2">
+              <Gavel className="w-4 h-4 text-teal" />
+              <p className="text-xl font-bold text-midnight">{stats.itemsWinning}</p>
             </div>
-            <p className="text-3xl font-extrabold text-midnight">{stats.itemsWinning}</p>
-            <p className="text-silver text-sm font-medium">Currently Winning</p>
+            <p className="text-silver text-xs font-medium">Winning</p>
           </div>
-          <div className="card p-6 text-center">
-            <div className="w-12 h-12 rounded-xl bg-violet/10 flex items-center justify-center mx-auto mb-3">
-              <Package className="w-6 h-6 text-violet" />
+          <div className="card p-3 text-center">
+            <div className="flex items-center justify-center gap-2">
+              <Package className="w-4 h-4 text-violet" />
+              <p className="text-xl font-bold text-midnight">{stats.itemsWon}</p>
             </div>
-            <p className="text-3xl font-extrabold text-midnight">{stats.itemsWon}</p>
-            <p className="text-silver text-sm font-medium">Items Won</p>
+            <p className="text-silver text-xs font-medium">Won</p>
           </div>
         </div>
 
@@ -189,6 +189,25 @@ export default function DashboardPage() {
             </div>
           </div>
         )}
+
+        {/* Browse Auction */}
+        <div className="card p-6 bg-gradient-to-r from-coral/5 to-gold/5 border border-coral/20 mb-4">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-coral to-gold flex items-center justify-center">
+              <Gavel className="w-6 h-6 text-white" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-bold text-midnight">Browse Auction Items</h3>
+              <p className="text-slate text-sm">
+                Discover amazing items and place your bids!
+              </p>
+            </div>
+            <Link href="/auction" className="btn-coral flex items-center gap-2">
+              Browse Now
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+        </div>
 
         {/* Donate an Item */}
         <div className="card p-6 bg-gradient-to-r from-teal/5 to-violet/5 border border-teal/20 mb-8">

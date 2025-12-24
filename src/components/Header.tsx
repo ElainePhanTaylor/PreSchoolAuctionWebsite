@@ -44,7 +44,7 @@ export default function Header() {
           {session && (
             <Link href="/dashboard" className="text-text-muted hover:text-primary font-medium transition-colors">
               My Dashboard
-            </Link>
+          </Link>
           )}
           {(session?.user as any)?.isAdmin && (
             <Link href="/admin" className="text-gold-dark hover:text-gold font-medium transition-colors">

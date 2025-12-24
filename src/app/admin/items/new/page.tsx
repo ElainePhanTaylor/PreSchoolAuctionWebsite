@@ -18,6 +18,7 @@ const CATEGORIES = [
   { value: "FOOD_DINING", label: "Food & Dining" },
   { value: "SPORTS", label: "Sports" },
   { value: "KIDS", label: "Kids" },
+  { value: "GENERAL_ITEMS", label: "General Items" },
   { value: "OTHER", label: "Other" },
 ]
 
@@ -127,6 +128,10 @@ export default function AddItemPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // Prevent double submission
+    if (submitting) return
+    
     setError("")
 
     // Validate
@@ -348,10 +353,10 @@ export default function AddItemPage() {
                   type="number"
                   value={estimatedValue}
                   onChange={(e) => setEstimatedValue(e.target.value)}
+                  onWheel={(e) => e.currentTarget.blur()}
                   className="input"
                   placeholder="e.g., 500"
                   min="0"
-                  step="1"
                 />
               </div>
             </div>
@@ -365,10 +370,10 @@ export default function AddItemPage() {
                   type="number"
                   value={startingBid}
                   onChange={(e) => setStartingBid(e.target.value)}
+                  onWheel={(e) => e.currentTarget.blur()}
                   className="input"
                   placeholder="Leave blank to auto-calculate (50% of value)"
                   min="0"
-                  step="1"
                 />
                 <p className="text-xs text-silver mt-1">
                   If blank, will be set to 50% of estimated value or $25

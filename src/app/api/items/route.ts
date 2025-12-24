@@ -28,8 +28,9 @@ export async function POST(request: Request) {
 
     // Calculate starting bid if not provided (round to nearest $5)
     const roundToFive = (n: number) => Math.round(n / 5) * 5
-    const calculatedStartingBid = startingBid 
-      ? parseFloat(startingBid) 
+    const parsedStartingBid = startingBid ? parseFloat(startingBid) : null
+    const calculatedStartingBid = (parsedStartingBid && !isNaN(parsedStartingBid))
+      ? Math.floor(parsedStartingBid)  // Use exact value (whole dollars)
       : roundToFive(estimatedValue ? estimatedValue * 0.5 : 25)
 
     // Create the item

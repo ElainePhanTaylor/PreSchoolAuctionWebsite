@@ -71,7 +71,22 @@ interface PendingDonation {
   }
 }
 
-type Tab = "overview" | "items" | "donations" | "payments" | "settings"
+interface User {
+  id: string
+  firstName: string
+  lastName: string
+  username: string
+  email: string
+  phone: string | null
+  isAdmin: boolean
+  createdAt: string
+  _count: {
+    bids: number
+    wonItems: number
+  }
+}
+
+type Tab = "overview" | "items" | "donations" | "payments" | "users" | "settings"
 
 export default function AdminPage() {
   const { data: session, status } = useSession()
@@ -80,6 +95,8 @@ export default function AdminPage() {
   const [items, setItems] = useState<AuctionItem[]>([])
   const [loading, setLoading] = useState(true)
   const [endingAuction, setEndingAuction] = useState(false)
+  const [auctionEnded, setAuctionEnded] = useState(false)
+  const [endAuctionResult, setEndAuctionResult] = useState<{ sold: number; unsold: number } | null>(null)
   
   // Payment tracking state
   const [payments, setPayments] = useState<PaymentItem[]>([])
@@ -91,6 +108,13 @@ export default function AdminPage() {
   const [pendingDonations, setPendingDonations] = useState<PendingDonation[]>([])
   const [donationsLoading, setDonationsLoading] = useState(false)
   const [updatingDonation, setUpdatingDonation] = useState<string | null>(null)
+  const [customStartingBids, setCustomStartingBids] = useState<Record<string, string>>({})
+
+  // Users state
+  const [users, setUsers] = useState<User[]>([])
+  const [usersLoading, setUsersLoading] = useState(false)
+  const [resettingPassword, setResettingPassword] = useState<string | null>(null)
+  const [tempPassword, setTempPassword] = useState<{ userId: string; password: string } | null>(null)
 
   // Fetch items and pending donations count on load
   useEffect(() => {
@@ -166,10 +190,15 @@ export default function AdminPage() {
   const handleDonationAction = async (itemId: string, action: "approve" | "reject") => {
     setUpdatingDonation(itemId)
     try {
+      const customBid = customStartingBids[itemId]
       const res = await fetch("/api/admin/donations", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ itemId, action }),
+        body: JSON.stringify({ 
+          itemId, 
+          action,
+          startingBid: customBid ? parseInt(customBid) : undefined
+        }),
       })
       
       if (res.ok) {
@@ -190,6 +219,54 @@ export default function AdminPage() {
       alert("Failed to update donation")
     } finally {
       setUpdatingDonation(null)
+    }
+  }
+
+  // Fetch users when users tab is active
+  useEffect(() => {
+    if (activeTab !== "users") return
+    
+    async function fetchUsers() {
+      setUsersLoading(true)
+      try {
+        const res = await fetch("/api/admin/users")
+        if (res.ok) {
+          const data = await res.json()
+          setUsers(data.users)
+        }
+      } catch (error) {
+        console.error("Failed to fetch users:", error)
+      } finally {
+        setUsersLoading(false)
+      }
+    }
+    fetchUsers()
+  }, [activeTab])
+
+  // Reset user password
+  const handleResetPassword = async (userId: string) => {
+    const confirmed = confirm("Reset this user's password? They will need a new temporary password to log in.")
+    if (!confirmed) return
+
+    setResettingPassword(userId)
+    try {
+      const res = await fetch("/api/admin/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId }),
+      })
+      
+      if (res.ok) {
+        const data = await res.json()
+        setTempPassword({ userId, password: data.tempPassword })
+      } else {
+        const data = await res.json()
+        alert(data.error || "Failed to reset password")
+      }
+    } catch {
+      alert("Failed to reset password")
+    } finally {
+      setResettingPassword(null)
     }
   }
 
@@ -255,7 +332,8 @@ export default function AdminPage() {
       const res = await fetch("/api/admin/end-auction", { method: "POST" })
       const data = await res.json()
       if (res.ok) {
-        alert(`✅ ${data.message}`)
+        setAuctionEnded(true)
+        setEndAuctionResult({ sold: data.sold || 0, unsold: data.unsold || 0 })
         // Refresh items
         const itemsRes = await fetch("/api/items?status=APPROVED")
         if (itemsRes.ok) {
@@ -312,6 +390,7 @@ export default function AdminPage() {
     { id: "items", label: "Items", icon: Package },
     { id: "donations", label: "Donations", icon: Gift },
     { id: "payments", label: "Payments", icon: CreditCard },
+    { id: "users", label: "Users", icon: Mail },
     { id: "settings", label: "Settings", icon: Settings },
   ]
 
@@ -526,7 +605,21 @@ export default function AdminPage() {
                                   {" "}Starting at ${donation.startingBid}
                                 </p>
                               </div>
-                              <div className="flex gap-2 flex-shrink-0">
+                              <div className="flex items-center gap-2 flex-shrink-0">
+                                <div className="flex items-center gap-1">
+                                  <span className="text-sm text-text-muted">Start $</span>
+                                  <input
+                                    type="number"
+                                    placeholder={String(donation.startingBid)}
+                                    value={customStartingBids[donation.id] || ""}
+                                    onChange={(e) => setCustomStartingBids({
+                                      ...customStartingBids,
+                                      [donation.id]: e.target.value
+                                    })}
+                                    className="w-20 px-2 py-1 border rounded-lg text-sm"
+                                    min="1"
+                                  />
+                                </div>
                                 <button
                                   onClick={() => handleDonationAction(donation.id, "approve")}
                                   disabled={updatingDonation === donation.id}
@@ -728,32 +821,139 @@ export default function AdminPage() {
             )}
 
 
+            {activeTab === "users" && (
+              <div className="space-y-6">
+                <h1 className="text-2xl font-bold text-text">User Management</h1>
+                
+                {usersLoading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                  </div>
+                ) : users.length === 0 ? (
+                  <div className="card p-8 text-center">
+                    <p className="text-text-muted">No registered users yet.</p>
+                  </div>
+                ) : (
+                  <div className="card overflow-hidden">
+                    <table className="w-full">
+                      <thead className="bg-gray-50 border-b">
+                        <tr>
+                          <th className="text-left px-4 py-3 text-sm font-medium text-text-muted">User</th>
+                          <th className="text-left px-4 py-3 text-sm font-medium text-text-muted">Email</th>
+                          <th className="text-left px-4 py-3 text-sm font-medium text-text-muted">Phone</th>
+                          <th className="text-center px-4 py-3 text-sm font-medium text-text-muted">Bids</th>
+                          <th className="text-center px-4 py-3 text-sm font-medium text-text-muted">Won</th>
+                          <th className="text-right px-4 py-3 text-sm font-medium text-text-muted">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y">
+                        {users.map((user) => (
+                          <tr key={user.id} className="hover:bg-gray-50">
+                            <td className="px-4 py-3">
+                              <div>
+                                <p className="font-medium text-text">
+                                  {user.firstName} {user.lastName}
+                                  {user.isAdmin && (
+                                    <span className="ml-2 text-xs bg-violet/20 text-violet px-2 py-0.5 rounded-full">
+                                      Admin
+                                    </span>
+                                  )}
+                                </p>
+                                <p className="text-sm text-text-muted">@{user.username}</p>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 text-sm text-text-muted">{user.email}</td>
+                            <td className="px-4 py-3 text-sm text-text-muted">{user.phone || "-"}</td>
+                            <td className="px-4 py-3 text-center text-sm">{user._count.bids}</td>
+                            <td className="px-4 py-3 text-center text-sm">{user._count.wonItems}</td>
+                            <td className="px-4 py-3 text-right">
+                              {tempPassword?.userId === user.id ? (
+                                <div className="inline-flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
+                                  <span className="text-sm text-green-700">New password:</span>
+                                  <code className="font-mono font-bold text-green-800 bg-green-100 px-2 py-0.5 rounded">
+                                    {tempPassword.password}
+                                  </code>
+                                  <button
+                                    onClick={() => {
+                                      navigator.clipboard.writeText(tempPassword.password)
+                                      alert("Password copied!")
+                                    }}
+                                    className="text-green-600 hover:text-green-800 text-xs underline"
+                                  >
+                                    Copy
+                                  </button>
+                                </div>
+                              ) : (
+                                <button
+                                  onClick={() => handleResetPassword(user.id)}
+                                  disabled={resettingPassword === user.id}
+                                  className="text-sm text-coral hover:text-coral/80 font-medium disabled:opacity-50"
+                                >
+                                  {resettingPassword === user.id ? (
+                                    <Loader2 className="w-4 h-4 animate-spin inline" />
+                                  ) : (
+                                    "Reset Password"
+                                  )}
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            )}
+
             {activeTab === "settings" && (
               <div className="space-y-6">
                 <h1 className="text-2xl font-bold text-text">Auction Settings</h1>
 
                 {/* End Auction Section */}
-                <div className="card p-6 border-2 border-red-200 bg-red-50">
-                  <h2 className="text-lg font-bold text-red-700 mb-2">End Auction</h2>
-                  <p className="text-sm text-red-600 mb-4">
-                    When you&apos;re ready to close the auction, click below. This will set winners 
-                    for all items and send notification emails.
-                  </p>
-                  <button
-                    onClick={handleEndAuction}
-                    disabled={endingAuction}
-                    className="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center gap-2"
-                  >
-                    {endingAuction ? (
-                      <>
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                        Ending Auction...
-                      </>
-                    ) : (
-                      "End Auction & Notify Winners"
+                {auctionEnded ? (
+                  <div className="card p-6 border-2 border-green-200 bg-green-50">
+                    <div className="flex items-center gap-2 text-green-700 mb-3">
+                      <CheckCircle className="w-6 h-6" />
+                      <h2 className="text-lg font-bold">Auction Ended Successfully!</h2>
+                    </div>
+                    <p className="text-sm text-green-600 mb-4">
+                      All live auctions have been closed. Winners have been assigned and notified.
+                    </p>
+                    {endAuctionResult && (
+                      <div className="flex gap-4 text-sm">
+                        <span className="bg-green-100 px-3 py-1 rounded-full text-green-700 font-medium">
+                          {endAuctionResult.sold} items sold
+                        </span>
+                        <span className="bg-gray-100 px-3 py-1 rounded-full text-gray-600 font-medium">
+                          {endAuctionResult.unsold} unsold
+                        </span>
+                      </div>
                     )}
-                  </button>
-                </div>
+                  </div>
+                ) : (
+                  <div className="card p-6 border-2 border-red-200 bg-red-50">
+                    <h2 className="text-lg font-bold text-red-700 mb-2">End Auction</h2>
+                    <p className="text-sm text-red-600 mb-4">
+                      When you&apos;re ready to close the auction, click below. This will set winners 
+                      for all items and send notification emails.
+                    </p>
+                    <button
+                      onClick={handleEndAuction}
+                      disabled={endingAuction}
+                      className="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+                    >
+                      {endingAuction ? (
+                        <>
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                          Ending Auction...
+                        </>
+                      ) : (
+                        "End Auction & Notify Winners"
+                      )}
+                    </button>
+                  </div>
+                )}
                 
                 <div className="card p-6 space-y-6">
                   <div>
