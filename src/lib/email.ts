@@ -1,6 +1,7 @@
 import { Resend } from "resend"
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+// Use a placeholder if no API key (prevents build errors)
+const resend = new Resend(process.env.RESEND_API_KEY || "re_placeholder")
 
 // Use Resend's test email until domain is verified
 // Change to "SACNS Auction <auction@sacns.org>" after verifying domain
