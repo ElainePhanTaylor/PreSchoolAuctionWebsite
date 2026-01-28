@@ -114,7 +114,6 @@ enum Category {
   FOOD_DINING
   SPORTS
   KIDS
-  GENERAL_ITEMS
   OTHER
 }
 

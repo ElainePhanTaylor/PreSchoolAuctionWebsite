@@ -1,49 +1,12 @@
 "use client"
 
-import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useSession } from "next-auth/react";
 import { Sparkles, Heart, Gavel, Users, ArrowRight, Clock, TrendingUp } from "lucide-react";
 
-interface FeaturedItem {
-  id: string;
-  title: string;
-  currentBid: number | null;
-  startingBid: number;
-  isFeatured: boolean;
-  photos: { url: string }[];
-  _count: { bids: number };
-}
-
 export default function Home() {
   const { data: session } = useSession();
-  const [featuredItems, setFeaturedItems] = useState<FeaturedItem[]>([]);
-  const [itemsLoaded, setItemsLoaded] = useState(false);
-
-  useEffect(() => {
-    async function fetchItems() {
-      try {
-        const res = await fetch("/api/items?status=APPROVED");
-        if (res.ok) {
-          const items = await res.json();
-          // Sort: featured items first, then by date
-          const sorted = items.sort((a: FeaturedItem, b: FeaturedItem) => {
-            if (a.isFeatured && !b.isFeatured) return -1;
-            if (!a.isFeatured && b.isFeatured) return 1;
-            return 0;
-          });
-          // Get up to 3 items for display
-          setFeaturedItems(sorted.slice(0, 3));
-        }
-      } catch (error) {
-        console.error("Failed to fetch items:", error);
-      } finally {
-        setItemsLoaded(true);
-      }
-    }
-    fetchItems();
-  }, []);
 
   return (
     <div className="min-h-screen gradient-mesh">
@@ -100,9 +63,9 @@ export default function Home() {
               </div>
               
               <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold text-midnight leading-[1.1] mb-6">
-                Co-Op Auction
+                Bid for a
                 <span className="block bg-gradient-to-r from-violet via-coral to-teal bg-clip-text text-transparent">
-                  2025
+                  Brighter Future
                 </span>
               </h1>
               
@@ -155,112 +118,43 @@ export default function Home() {
                 <div className="absolute inset-0 bg-gradient-to-t from-pearl/80 via-transparent to-pearl/60" />
               </div>
 
-              {/* Floating Cards - Real Items */}
+              {/* Floating Cards */}
               <div className="relative h-[500px] z-10">
-                {!itemsLoaded ? (
-                  /* Loading state - show nothing or skeleton */
-                  <div className="flex items-center justify-center h-full">
-                    <div className="text-slate/50 animate-pulse">Loading items...</div>
+                {/* Card 1 */}
+                <div className="card absolute top-0 right-0 w-72 p-4 animate-float shadow-xl" style={{ animationDelay: '0s' }}>
+                  <div className="aspect-[4/3] rounded-xl mb-3 overflow-hidden">
+                    <Image src="/images/wine.png" alt="Wine Country Getaway" width={300} height={225} className="w-full h-full object-cover" />
                   </div>
-                ) : featuredItems.length > 0 ? (
-                  <>
-                    {/* Card 1 */}
-                    {featuredItems[0] && (
-                      <Link href={`/auction/${featuredItems[0].id}`} className="card absolute top-0 right-0 w-72 p-4 animate-float shadow-xl hover:shadow-2xl transition-shadow" style={{ animationDelay: '0s' }}>
-                        <div className="aspect-[4/3] rounded-xl mb-3 overflow-hidden bg-gray-100">
-                          {featuredItems[0].photos[0]?.url ? (
-                            <img src={featuredItems[0].photos[0].url} alt={featuredItems[0].title} className="w-full h-full object-cover" />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <Gavel className="w-12 h-12 text-gray-300" />
-                            </div>
-                          )}
-                        </div>
-                        <p className="font-bold text-midnight truncate">{featuredItems[0].title}</p>
-                        <div className="flex items-center justify-between mt-2">
-                          <span className="text-2xl font-extrabold text-coral">${featuredItems[0].currentBid || featuredItems[0].startingBid}</span>
-                          <span className="text-silver text-sm">{featuredItems[0]._count.bids} bids</span>
-                        </div>
-                      </Link>
-                    )}
+                  <p className="font-bold text-midnight">Wine Country Getaway</p>
+                  <div className="flex items-center justify-between mt-2">
+                    <span className="text-2xl font-extrabold text-coral">$450</span>
+                    <span className="text-silver text-sm">8 bids</span>
+                  </div>
+                </div>
 
-                    {/* Card 2 */}
-                    {featuredItems[1] && (
-                      <Link href={`/auction/${featuredItems[1].id}`} className="card absolute top-32 left-0 w-64 p-4 animate-float shadow-xl hover:shadow-2xl transition-shadow" style={{ animationDelay: '0.5s' }}>
-                        <div className="aspect-[4/3] rounded-xl mb-3 overflow-hidden bg-gray-100">
-                          {featuredItems[1].photos[0]?.url ? (
-                            <img src={featuredItems[1].photos[0].url} alt={featuredItems[1].title} className="w-full h-full object-cover" />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <Gavel className="w-12 h-12 text-gray-300" />
-                            </div>
-                          )}
-                        </div>
-                        <p className="font-bold text-midnight truncate">{featuredItems[1].title}</p>
-                        <div className="flex items-center justify-between mt-2">
-                          <span className="text-2xl font-extrabold text-coral">${featuredItems[1].currentBid || featuredItems[1].startingBid}</span>
-                          <span className="text-silver text-sm">{featuredItems[1]._count.bids} bids</span>
-                        </div>
-                      </Link>
-                    )}
+                {/* Card 2 */}
+                <div className="card absolute top-32 left-0 w-64 p-4 animate-float shadow-xl" style={{ animationDelay: '0.5s' }}>
+                  <div className="aspect-[4/3] rounded-xl mb-3 overflow-hidden">
+                    <Image src="/images/artclass.png" alt="Art Class Bundle" width={300} height={225} className="w-full h-full object-cover" />
+                  </div>
+                  <p className="font-bold text-midnight">Art Class Bundle</p>
+                  <div className="flex items-center justify-between mt-2">
+                    <span className="text-2xl font-extrabold text-coral">$180</span>
+                    <span className="text-silver text-sm">5 bids</span>
+                  </div>
+                </div>
 
-                    {/* Card 3 */}
-                    {featuredItems[2] && (
-                      <Link href={`/auction/${featuredItems[2].id}`} className="card absolute bottom-0 right-12 w-60 p-4 animate-float shadow-xl hover:shadow-2xl transition-shadow" style={{ animationDelay: '1s' }}>
-                        <div className="aspect-[4/3] rounded-xl mb-3 overflow-hidden bg-gray-100">
-                          {featuredItems[2].photos[0]?.url ? (
-                            <img src={featuredItems[2].photos[0].url} alt={featuredItems[2].title} className="w-full h-full object-cover" />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <Gavel className="w-12 h-12 text-gray-300" />
-                            </div>
-                          )}
-                        </div>
-                        <p className="font-bold text-midnight truncate">{featuredItems[2].title}</p>
-                        <div className="flex items-center justify-between mt-2">
-                          <span className="text-2xl font-extrabold text-coral">${featuredItems[2].currentBid || featuredItems[2].startingBid}</span>
-                          <span className="text-silver text-sm">{featuredItems[2]._count.bids} bids</span>
-                        </div>
-                      </Link>
-                    )}
-                  </>
-                ) : (
-                  /* Fallback placeholder cards when no items */
-                  <>
-                    <div className="card absolute top-0 right-0 w-72 p-4 animate-float shadow-xl" style={{ animationDelay: '0s' }}>
-                      <div className="aspect-[4/3] rounded-xl mb-3 overflow-hidden">
-                        <Image src="/images/wine.png" alt="Wine Country Getaway" width={300} height={225} className="w-full h-full object-cover" />
-                      </div>
-                      <p className="font-bold text-midnight">Wine Country Getaway</p>
-                      <div className="flex items-center justify-between mt-2">
-                        <span className="text-2xl font-extrabold text-coral">$450</span>
-                        <span className="text-silver text-sm">Example</span>
-                      </div>
-                    </div>
-
-                    <div className="card absolute top-32 left-0 w-64 p-4 animate-float shadow-xl" style={{ animationDelay: '0.5s' }}>
-                      <div className="aspect-[4/3] rounded-xl mb-3 overflow-hidden">
-                        <Image src="/images/artclass.png" alt="Art Class Bundle" width={300} height={225} className="w-full h-full object-cover" />
-                      </div>
-                      <p className="font-bold text-midnight">Art Class Bundle</p>
-                      <div className="flex items-center justify-between mt-2">
-                        <span className="text-2xl font-extrabold text-coral">$180</span>
-                        <span className="text-silver text-sm">Example</span>
-                      </div>
-                    </div>
-
-                    <div className="card absolute bottom-0 right-12 w-60 p-4 animate-float shadow-xl" style={{ animationDelay: '1s' }}>
-                      <div className="aspect-[4/3] rounded-xl mb-3 overflow-hidden">
-                        <Image src="/images/giftcards.png" alt="Gift Card Bundle" width={300} height={225} className="w-full h-full object-cover" />
-                      </div>
-                      <p className="font-bold text-midnight">Gift Card Bundle</p>
-                      <div className="flex items-center justify-between mt-2">
-                        <span className="text-2xl font-extrabold text-coral">$120</span>
-                        <span className="text-silver text-sm">Example</span>
-                      </div>
-                    </div>
-                  </>
-                )}
+                {/* Card 3 */}
+                <div className="card absolute bottom-0 right-12 w-60 p-4 animate-float shadow-xl" style={{ animationDelay: '1s' }}>
+                  <div className="aspect-[4/3] rounded-xl mb-3 overflow-hidden">
+                    <Image src="/images/giftcards.png" alt="Gift Card Bundle" width={300} height={225} className="w-full h-full object-cover" />
+                  </div>
+                  <p className="font-bold text-midnight">Gift Card Bundle</p>
+                  <div className="flex items-center justify-between mt-2">
+                    <span className="text-2xl font-extrabold text-coral">$120</span>
+                    <span className="text-silver text-sm">3 bids</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -362,24 +256,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Donate CTA */}
-      <section className="py-24 px-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="gradient-border p-12 text-center">
-            <div className="badge badge-coral mb-6 mx-auto">Give Back</div>
-            <h2 className="text-4xl font-extrabold text-midnight mb-4">
-              Have Something to Donate?
-            </h2>
-            <p className="text-slate text-lg mb-8 max-w-xl mx-auto">
-              Gift cards, experiences, handmade items, services — every donation helps our school thrive!
-            </p>
-            <Link href="/register" className="btn-primary inline-flex items-center gap-2">
-              Donate an Item
-              <Heart className="w-5 h-5" />
-            </Link>
-          </div>
-        </div>
-      </section>
 
       {/* Footer */}
       <footer className="bg-midnight py-12 px-6">

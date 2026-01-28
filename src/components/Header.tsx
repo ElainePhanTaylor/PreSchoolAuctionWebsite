@@ -46,7 +46,7 @@ export default function Header() {
               My Dashboard
           </Link>
           )}
-          {(session?.user as { isAdmin?: boolean })?.isAdmin && (
+          {(session?.user as any)?.isAdmin && (
             <Link href="/admin" className="text-gold-dark hover:text-gold font-medium transition-colors">
               Admin
             </Link>

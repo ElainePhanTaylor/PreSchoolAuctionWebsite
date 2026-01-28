@@ -154,7 +154,6 @@ export function BidForm({ itemId, itemTitle, minBid, buyNowPrice, isWatching }: 
             step="1"
             value={bidAmount}
             onChange={(e) => setBidAmount(e.target.value)}
-            onWheel={(e) => e.currentTarget.blur()}
             className="input pl-8 text-lg font-semibold"
             disabled={loading}
           />

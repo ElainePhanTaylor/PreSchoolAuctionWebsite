@@ -20,7 +20,6 @@ const CATEGORIES = [
   { value: "FOOD_DINING", label: "Food & Dining" },
   { value: "SPORTS", label: "Sports" },
   { value: "KIDS", label: "Kids" },
-  { value: "GENERAL_ITEMS", label: "General Items" },
   { value: "OTHER", label: "Other" },
 ]
 
@@ -431,17 +430,17 @@ export default function DonatePage() {
                 Estimated Value
               </label>
               <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate font-medium">$</span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate">$</span>
                 <input
                   id="estimatedValue"
                   name="estimatedValue"
                   type="number"
                   value={formData.estimatedValue}
                   onChange={handleChange}
-                  onWheel={(e) => e.currentTarget.blur()}
-                  className="input !pl-10"
+                  className="input pl-8"
                   placeholder="0"
                   min="0"
+                  step="1"
                 />
               </div>
               <p className="text-xs text-slate mt-1">

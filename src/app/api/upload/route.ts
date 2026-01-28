@@ -34,11 +34,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ urls })
   } catch (error) {
-    console.error("Upload error details:", {
-      error,
-      message: error instanceof Error ? error.message : "Unknown error",
-      stack: error instanceof Error ? error.stack : undefined,
-    })
+    console.error("Upload error:", error)
     // Return more specific error message
     const errorMessage = error instanceof Error ? error.message : "Failed to upload images"
     return NextResponse.json(

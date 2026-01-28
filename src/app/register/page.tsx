@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { signIn } from "next-auth/react"
 import Link from "next/link"
 import Image from "next/image"
 import { Mail, Lock, User, Phone, AlertCircle, CheckCircle, ArrowLeft } from "lucide-react"
@@ -21,21 +20,8 @@ export default function RegisterPage() {
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
 
-  // Format phone number with dashes
-  const formatPhoneNumber = (value: string) => {
-    const numbers = value.replace(/\D/g, '').slice(0, 10)
-    if (numbers.length <= 3) return numbers
-    if (numbers.length <= 6) return `${numbers.slice(0, 3)}-${numbers.slice(3)}`
-    return `${numbers.slice(0, 3)}-${numbers.slice(3, 6)}-${numbers.slice(6)}`
-  }
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    if (name === 'phone') {
-      setFormData({ ...formData, phone: formatPhoneNumber(value) })
-    } else {
-      setFormData({ ...formData, [name]: value })
-    }
+    setFormData({ ...formData, [e.target.name]: e.target.value })
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -73,19 +59,7 @@ export default function RegisterPage() {
       if (!res.ok) {
         setError(data.error || "Registration failed")
       } else {
-        // Auto-login after successful registration
-        const signInResult = await signIn("credentials", {
-          email: formData.email,
-          password: formData.password,
-          redirect: false,
-        })
-
-        if (signInResult?.ok) {
-          router.push("/dashboard")
-        } else {
-          // Fallback to login page if auto-login fails
-          router.push("/login?registered=true")
-        }
+        router.push("/login?registered=true")
       }
     } catch (err) {
       setError("An unexpected error occurred")
@@ -218,7 +192,7 @@ export default function RegisterPage() {
                     value={formData.phone}
                     onChange={handleChange}
                     className="input !pl-12"
-                    placeholder="415-555-0123"
+                    placeholder="(415) 555-0123"
                     required
                   />
                 </div>

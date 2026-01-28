@@ -20,7 +20,6 @@ const CATEGORIES = [
   { value: "FOOD_DINING", label: "Food & Dining" },
   { value: "SPORTS", label: "Sports" },
   { value: "KIDS", label: "Kids" },
-  { value: "GENERAL_ITEMS", label: "General Items" },
   { value: "OTHER", label: "Other" },
 ]
 

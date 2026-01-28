@@ -82,6 +82,7 @@
 
 ## 📅 Deferred to Future Years
 
+- [ ] User-submitted donations (`/donate` page) - currently admin-only
 - [ ] SMS notifications
 - [ ] Watchlist feature
 - [ ] "Buy Now" option
@@ -101,7 +102,6 @@
 - [x] Phone number required
 - [x] Unique display names
 - [x] Cloudinary image upload (auto-resize & optimize)
-- [x] User-submitted donations (`/donate` page)
 - [x] User dashboard shows bids and won items
 - [x] Navigation consistency (logo → dashboard when logged in)
 - [x] Bid confirmation popup

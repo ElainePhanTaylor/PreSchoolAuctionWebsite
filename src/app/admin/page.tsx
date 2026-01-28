@@ -7,8 +7,7 @@ import Link from "next/link"
 import { 
   Trees, Package, CreditCard, 
   Settings, AlertCircle, Eye, Trash2,
-  Plus, Loader2, CheckCircle, Clock, DollarSign, Mail, Phone,
-  Gift, Check, X
+  Plus, Loader2, CheckCircle, Clock, DollarSign, Mail, Phone
 } from "lucide-react"
 
 interface AuctionItem {
@@ -52,41 +51,7 @@ interface PaymentStats {
   expectedRevenue: number
 }
 
-interface PendingDonation {
-  id: string
-  title: string
-  description: string
-  category: string
-  estimatedValue: number | null
-  startingBid: number
-  donorName: string | null
-  createdAt: string
-  photos: { url: string }[]
-  donor: {
-    id: string
-    firstName: string
-    lastName: string
-    email: string
-    username: string
-  }
-}
-
-interface User {
-  id: string
-  firstName: string
-  lastName: string
-  username: string
-  email: string
-  phone: string | null
-  isAdmin: boolean
-  createdAt: string
-  _count: {
-    bids: number
-    wonItems: number
-  }
-}
-
-type Tab = "overview" | "items" | "donations" | "payments" | "users" | "settings"
+type Tab = "overview" | "items" | "payments" | "settings"
 
 export default function AdminPage() {
   const { data: session, status } = useSession()
@@ -95,8 +60,6 @@ export default function AdminPage() {
   const [items, setItems] = useState<AuctionItem[]>([])
   const [loading, setLoading] = useState(true)
   const [endingAuction, setEndingAuction] = useState(false)
-  const [auctionEnded, setAuctionEnded] = useState(false)
-  const [endAuctionResult, setEndAuctionResult] = useState<{ sold: number; unsold: number } | null>(null)
   
   // Payment tracking state
   const [payments, setPayments] = useState<PaymentItem[]>([])
@@ -104,43 +67,22 @@ export default function AdminPage() {
   const [paymentsLoading, setPaymentsLoading] = useState(false)
   const [updatingPayment, setUpdatingPayment] = useState<string | null>(null)
 
-  // Pending donations state
-  const [pendingDonations, setPendingDonations] = useState<PendingDonation[]>([])
-  const [donationsLoading, setDonationsLoading] = useState(false)
-  const [updatingDonation, setUpdatingDonation] = useState<string | null>(null)
-  const [customStartingBids, setCustomStartingBids] = useState<Record<string, string>>({})
-
-  // Users state
-  const [users, setUsers] = useState<User[]>([])
-  const [usersLoading, setUsersLoading] = useState(false)
-  const [resettingPassword, setResettingPassword] = useState<string | null>(null)
-  const [tempPassword, setTempPassword] = useState<{ userId: string; password: string } | null>(null)
-
-  // Fetch items and pending donations count on load
+  // Fetch items
   useEffect(() => {
-    async function fetchData() {
+    async function fetchItems() {
       try {
-        const [itemsRes, donationsRes] = await Promise.all([
-          fetch("/api/items?status=APPROVED"),
-          fetch("/api/admin/donations")
-        ])
-        
-        if (itemsRes.ok) {
-          const data = await itemsRes.json()
+        const res = await fetch("/api/items?status=APPROVED")
+        if (res.ok) {
+          const data = await res.json()
           setItems(data)
         }
-        
-        if (donationsRes.ok) {
-          const data = await donationsRes.json()
-          setPendingDonations(data.items)
-        }
       } catch (error) {
-        console.error("Failed to fetch data:", error)
+        console.error("Failed to fetch items:", error)
       } finally {
         setLoading(false)
       }
     }
-    fetchData()
+    fetchItems()
   }, [])
 
   // Fetch payments when payments tab is active
@@ -164,111 +106,6 @@ export default function AdminPage() {
     }
     fetchPayments()
   }, [activeTab])
-
-  // Fetch pending donations when donations tab is active
-  useEffect(() => {
-    if (activeTab !== "donations") return
-    
-    async function fetchDonations() {
-      setDonationsLoading(true)
-      try {
-        const res = await fetch("/api/admin/donations")
-        if (res.ok) {
-          const data = await res.json()
-          setPendingDonations(data.items)
-        }
-      } catch (error) {
-        console.error("Failed to fetch donations:", error)
-      } finally {
-        setDonationsLoading(false)
-      }
-    }
-    fetchDonations()
-  }, [activeTab])
-
-  // Handle donation approval/rejection
-  const handleDonationAction = async (itemId: string, action: "approve" | "reject") => {
-    setUpdatingDonation(itemId)
-    try {
-      const customBid = customStartingBids[itemId]
-      const res = await fetch("/api/admin/donations", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          itemId, 
-          action,
-          startingBid: customBid ? parseInt(customBid) : undefined
-        }),
-      })
-      
-      if (res.ok) {
-        // Remove from pending list
-        setPendingDonations(pendingDonations.filter(d => d.id !== itemId))
-        // If approved, refresh the items list
-        if (action === "approve") {
-          const itemsRes = await fetch("/api/items?status=APPROVED")
-          if (itemsRes.ok) {
-            setItems(await itemsRes.json())
-          }
-        }
-      } else {
-        const data = await res.json()
-        alert(data.error || "Failed to update donation")
-      }
-    } catch {
-      alert("Failed to update donation")
-    } finally {
-      setUpdatingDonation(null)
-    }
-  }
-
-  // Fetch users when users tab is active
-  useEffect(() => {
-    if (activeTab !== "users") return
-    
-    async function fetchUsers() {
-      setUsersLoading(true)
-      try {
-        const res = await fetch("/api/admin/users")
-        if (res.ok) {
-          const data = await res.json()
-          setUsers(data.users)
-        }
-      } catch (error) {
-        console.error("Failed to fetch users:", error)
-      } finally {
-        setUsersLoading(false)
-      }
-    }
-    fetchUsers()
-  }, [activeTab])
-
-  // Reset user password
-  const handleResetPassword = async (userId: string) => {
-    const confirmed = confirm("Reset this user's password? They will need a new temporary password to log in.")
-    if (!confirmed) return
-
-    setResettingPassword(userId)
-    try {
-      const res = await fetch("/api/admin/users", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId }),
-      })
-      
-      if (res.ok) {
-        const data = await res.json()
-        setTempPassword({ userId, password: data.tempPassword })
-      } else {
-        const data = await res.json()
-        alert(data.error || "Failed to reset password")
-      }
-    } catch {
-      alert("Failed to reset password")
-    } finally {
-      setResettingPassword(null)
-    }
-  }
 
   // Mark check payment as received
   const handleMarkPayment = async (itemId: string, action: "mark_received" | "mark_pending") => {
@@ -332,8 +169,7 @@ export default function AdminPage() {
       const res = await fetch("/api/admin/end-auction", { method: "POST" })
       const data = await res.json()
       if (res.ok) {
-        setAuctionEnded(true)
-        setEndAuctionResult({ sold: data.sold || 0, unsold: data.unsold || 0 })
+        alert(`✅ ${data.message}`)
         // Refresh items
         const itemsRes = await fetch("/api/items?status=APPROVED")
         if (itemsRes.ok) {
@@ -370,7 +206,7 @@ export default function AdminPage() {
     return null
   }
 
-  const isAdmin = (session?.user as { isAdmin?: boolean })?.isAdmin
+  const isAdmin = (session?.user as any)?.isAdmin
   if (!isAdmin) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -388,9 +224,7 @@ export default function AdminPage() {
 
   const tabs = [
     { id: "items", label: "Items", icon: Package },
-    { id: "donations", label: "Donations", icon: Gift },
     { id: "payments", label: "Payments", icon: CreditCard },
-    { id: "users", label: "Users", icon: Mail },
     { id: "settings", label: "Settings", icon: Settings },
   ]
 
@@ -438,13 +272,6 @@ export default function AdminPage() {
                       {items.length}
                     </span>
                   )}
-                  {tab.id === "donations" && pendingDonations.length > 0 && (
-                    <span className={`ml-auto text-xs px-2 py-0.5 rounded-full ${
-                      activeTab === tab.id ? "bg-white/20" : "bg-amber-100 text-amber-700"
-                    }`}>
-                      {pendingDonations.length}
-                    </span>
-                  )}
                 </button>
               ))}
             </nav>
@@ -454,13 +281,29 @@ export default function AdminPage() {
           <main className="flex-1">
             {activeTab === "items" && (
               <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <h1 className="text-2xl font-bold text-text">Manage Items</h1>
-                  <Link href="/admin/items/new" className="btn-gold flex items-center gap-2">
-                    <Plus className="w-4 h-4" />
-                    Add Item
-                  </Link>
-                </div>
+                <h1 className="text-2xl font-bold text-text">Manage Items</h1>
+
+                {/* Add Item Banner */}
+                <Link 
+                  href="/admin/items/new" 
+                  className="block p-6 rounded-2xl text-white hover:shadow-xl hover:scale-[1.01] transition-all duration-300 group"
+                  style={{ background: 'linear-gradient(135deg, #8B5CF6 0%, #667eea 50%, #764ba2 100%)' }}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center">
+                        <Plus className="w-7 h-7 text-white" />
+                      </div>
+                      <div>
+                        <h2 className="text-xl font-bold mb-1">Add New Auction Item</h2>
+                        <p className="text-white/80">
+                          Upload photos, set starting bid, and publish to the auction
+                        </p>
+                      </div>
+                    </div>
+                    <Plus className="w-8 h-8 text-white/80 group-hover:rotate-90 transition-transform duration-300" />
+                  </div>
+                </Link>
 
                 {/* Stats */}
                 <div className="grid grid-cols-3 gap-4">
@@ -549,119 +392,6 @@ export default function AdminPage() {
                         ))}
                       </tbody>
                     </table>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {activeTab === "donations" && (
-              <div className="space-y-6">
-                <h1 className="text-2xl font-bold text-text">Pending Donations</h1>
-                <p className="text-text-muted">
-                  Review and approve items submitted by users. Approved items will appear in the auction.
-                </p>
-
-                {donationsLoading ? (
-                  <div className="card p-8 flex items-center justify-center">
-                    <Loader2 className="w-6 h-6 animate-spin text-violet" />
-                    <span className="ml-2 text-text-muted">Loading donations...</span>
-                  </div>
-                ) : pendingDonations.length === 0 ? (
-                  <div className="card p-8 text-center text-text-muted">
-                    <Gift className="w-12 h-12 mx-auto mb-4 opacity-30" />
-                    <p className="font-medium">No pending donations</p>
-                    <p className="text-sm mt-2">
-                      When users submit items to donate, they&apos;ll appear here for review.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {pendingDonations.map((donation) => (
-                      <div key={donation.id} className="card p-6">
-                        <div className="flex gap-6">
-                          {/* Photo */}
-                          <div className="w-32 h-32 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden">
-                            {donation.photos[0]?.url ? (
-                              <img 
-                                src={donation.photos[0].url} 
-                                alt={donation.title}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center text-gray-400">
-                                <Package className="w-8 h-8" />
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Details */}
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-start justify-between gap-4">
-                              <div>
-                                <h3 className="text-lg font-bold text-text">{donation.title}</h3>
-                                <p className="text-sm text-text-muted mt-1">
-                                  {donation.category.replace("_", " ")} • 
-                                  {donation.estimatedValue && ` Est. $${donation.estimatedValue} •`}
-                                  {" "}Starting at ${donation.startingBid}
-                                </p>
-                              </div>
-                              <div className="flex items-center gap-2 flex-shrink-0">
-                                <div className="flex items-center gap-1">
-                                  <span className="text-sm text-text-muted">Start $</span>
-                                  <input
-                                    type="number"
-                                    placeholder={String(donation.startingBid)}
-                                    value={customStartingBids[donation.id] || ""}
-                                    onChange={(e) => setCustomStartingBids({
-                                      ...customStartingBids,
-                                      [donation.id]: e.target.value
-                                    })}
-                                    className="w-20 px-2 py-1 border rounded-lg text-sm"
-                                    min="1"
-                                  />
-                                </div>
-                                <button
-                                  onClick={() => handleDonationAction(donation.id, "approve")}
-                                  disabled={updatingDonation === donation.id}
-                                  className="flex items-center gap-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 font-medium"
-                                >
-                                  {updatingDonation === donation.id ? (
-                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                  ) : (
-                                    <Check className="w-4 h-4" />
-                                  )}
-                                  Approve
-                                </button>
-                                <button
-                                  onClick={() => handleDonationAction(donation.id, "reject")}
-                                  disabled={updatingDonation === donation.id}
-                                  className="flex items-center gap-1 px-4 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 disabled:opacity-50 font-medium"
-                                >
-                                  <X className="w-4 h-4" />
-                                  Reject
-                                </button>
-                              </div>
-                            </div>
-
-                            <p className="text-sm text-text mt-3 line-clamp-2">{donation.description}</p>
-
-                            <div className="flex items-center gap-4 mt-4 pt-4 border-t text-sm text-text-muted">
-                              <div>
-                                <span className="font-medium text-text">Donated by:</span>{" "}
-                                {donation.donorName || `${donation.donor.firstName} ${donation.donor.lastName}`}
-                              </div>
-                              <div>
-                                <span className="font-medium text-text">Submitted by:</span>{" "}
-                                {donation.donor.firstName} {donation.donor.lastName} ({donation.donor.email})
-                              </div>
-                              <div className="ml-auto">
-                                {new Date(donation.createdAt).toLocaleDateString()}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
                   </div>
                 )}
               </div>
@@ -821,139 +551,32 @@ export default function AdminPage() {
             )}
 
 
-            {activeTab === "users" && (
-              <div className="space-y-6">
-                <h1 className="text-2xl font-bold text-text">User Management</h1>
-                
-                {usersLoading ? (
-                  <div className="flex items-center justify-center py-12">
-                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                  </div>
-                ) : users.length === 0 ? (
-                  <div className="card p-8 text-center">
-                    <p className="text-text-muted">No registered users yet.</p>
-                  </div>
-                ) : (
-                  <div className="card overflow-hidden">
-                    <table className="w-full">
-                      <thead className="bg-gray-50 border-b">
-                        <tr>
-                          <th className="text-left px-4 py-3 text-sm font-medium text-text-muted">User</th>
-                          <th className="text-left px-4 py-3 text-sm font-medium text-text-muted">Email</th>
-                          <th className="text-left px-4 py-3 text-sm font-medium text-text-muted">Phone</th>
-                          <th className="text-center px-4 py-3 text-sm font-medium text-text-muted">Bids</th>
-                          <th className="text-center px-4 py-3 text-sm font-medium text-text-muted">Won</th>
-                          <th className="text-right px-4 py-3 text-sm font-medium text-text-muted">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y">
-                        {users.map((user) => (
-                          <tr key={user.id} className="hover:bg-gray-50">
-                            <td className="px-4 py-3">
-                              <div>
-                                <p className="font-medium text-text">
-                                  {user.firstName} {user.lastName}
-                                  {user.isAdmin && (
-                                    <span className="ml-2 text-xs bg-violet/20 text-violet px-2 py-0.5 rounded-full">
-                                      Admin
-                                    </span>
-                                  )}
-                                </p>
-                                <p className="text-sm text-text-muted">@{user.username}</p>
-                              </div>
-                            </td>
-                            <td className="px-4 py-3 text-sm text-text-muted">{user.email}</td>
-                            <td className="px-4 py-3 text-sm text-text-muted">{user.phone || "-"}</td>
-                            <td className="px-4 py-3 text-center text-sm">{user._count.bids}</td>
-                            <td className="px-4 py-3 text-center text-sm">{user._count.wonItems}</td>
-                            <td className="px-4 py-3 text-right">
-                              {tempPassword?.userId === user.id ? (
-                                <div className="inline-flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
-                                  <span className="text-sm text-green-700">New password:</span>
-                                  <code className="font-mono font-bold text-green-800 bg-green-100 px-2 py-0.5 rounded">
-                                    {tempPassword.password}
-                                  </code>
-                                  <button
-                                    onClick={() => {
-                                      navigator.clipboard.writeText(tempPassword.password)
-                                      alert("Password copied!")
-                                    }}
-                                    className="text-green-600 hover:text-green-800 text-xs underline"
-                                  >
-                                    Copy
-                                  </button>
-                                </div>
-                              ) : (
-                                <button
-                                  onClick={() => handleResetPassword(user.id)}
-                                  disabled={resettingPassword === user.id}
-                                  className="text-sm text-coral hover:text-coral/80 font-medium disabled:opacity-50"
-                                >
-                                  {resettingPassword === user.id ? (
-                                    <Loader2 className="w-4 h-4 animate-spin inline" />
-                                  ) : (
-                                    "Reset Password"
-                                  )}
-                                </button>
-                              )}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-            )}
-
             {activeTab === "settings" && (
               <div className="space-y-6">
                 <h1 className="text-2xl font-bold text-text">Auction Settings</h1>
 
                 {/* End Auction Section */}
-                {auctionEnded ? (
-                  <div className="card p-6 border-2 border-green-200 bg-green-50">
-                    <div className="flex items-center gap-2 text-green-700 mb-3">
-                      <CheckCircle className="w-6 h-6" />
-                      <h2 className="text-lg font-bold">Auction Ended Successfully!</h2>
-                    </div>
-                    <p className="text-sm text-green-600 mb-4">
-                      All live auctions have been closed. Winners have been assigned and notified.
-                    </p>
-                    {endAuctionResult && (
-                      <div className="flex gap-4 text-sm">
-                        <span className="bg-green-100 px-3 py-1 rounded-full text-green-700 font-medium">
-                          {endAuctionResult.sold} items sold
-                        </span>
-                        <span className="bg-gray-100 px-3 py-1 rounded-full text-gray-600 font-medium">
-                          {endAuctionResult.unsold} unsold
-                        </span>
-                      </div>
+                <div className="card p-6 border-2 border-red-200 bg-red-50">
+                  <h2 className="text-lg font-bold text-red-700 mb-2">End Auction</h2>
+                  <p className="text-sm text-red-600 mb-4">
+                    When you&apos;re ready to close the auction, click below. This will set winners 
+                    for all items and send notification emails.
+                  </p>
+                  <button
+                    onClick={handleEndAuction}
+                    disabled={endingAuction}
+                    className="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+                  >
+                    {endingAuction ? (
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        Ending Auction...
+                      </>
+                    ) : (
+                      "End Auction & Notify Winners"
                     )}
-                  </div>
-                ) : (
-                  <div className="card p-6 border-2 border-red-200 bg-red-50">
-                    <h2 className="text-lg font-bold text-red-700 mb-2">End Auction</h2>
-                    <p className="text-sm text-red-600 mb-4">
-                      When you&apos;re ready to close the auction, click below. This will set winners 
-                      for all items and send notification emails.
-                    </p>
-                    <button
-                      onClick={handleEndAuction}
-                      disabled={endingAuction}
-                      className="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center gap-2"
-                    >
-                      {endingAuction ? (
-                        <>
-                          <Loader2 className="w-5 h-5 animate-spin" />
-                          Ending Auction...
-                        </>
-                      ) : (
-                        "End Auction & Notify Winners"
-                      )}
-                    </button>
-                  </div>
-                )}
+                  </button>
+                </div>
                 
                 <div className="card p-6 space-y-6">
                   <div>

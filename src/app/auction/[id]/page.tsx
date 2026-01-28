@@ -48,7 +48,6 @@ export default function ItemDetailPage() {
   const [bidAmount, setBidAmount] = useState(0)
   const [bidStatus, setBidStatus] = useState<"idle" | "submitting" | "success" | "error">("idle")
   const [bidError, setBidError] = useState("")
-  const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0)
   const [showBidConfirm, setShowBidConfirm] = useState(false)
   
   const [paymentLoading, setPaymentLoading] = useState(false)
@@ -311,18 +310,15 @@ export default function ItemDetailPage() {
 
       {/* Main Content */}
       <main className="max-w-6xl mx-auto px-4 pb-12">
-        {/* Title at top */}
-        <h1 className="text-3xl font-bold text-midnight mb-6">{item.title}</h1>
-        
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Left: Image & Details */}
           <div>
             {/* Image */}
             <div className="card overflow-hidden mb-6">
-              <div className="aspect-[16/10] max-h-[400px] bg-gray-100 relative">
-                {item.photos[selectedPhotoIndex]?.url ? (
+              <div className="aspect-[4/3] bg-gray-100 relative">
+                {item.photos[0]?.url ? (
                   <Image 
-                    src={item.photos[selectedPhotoIndex].url} 
+                    src={item.photos[0].url} 
                     alt={item.title}
                     fill
                     className="object-cover"
@@ -338,29 +334,6 @@ export default function ItemDetailPage() {
                   </div>
                 )}
               </div>
-              
-              {/* Thumbnails */}
-              {item.photos.length > 1 && (
-                <div className="flex gap-2 p-3 bg-gray-50">
-                  {item.photos.map((photo, index) => (
-                    <button
-                      key={index}
-                      onClick={() => setSelectedPhotoIndex(index)}
-                      className={`w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 border-2 transition-all ${
-                        selectedPhotoIndex === index 
-                          ? "border-violet ring-2 ring-violet/30" 
-                          : "border-transparent hover:border-gray-300"
-                      }`}
-                    >
-                      <img 
-                        src={photo.url} 
-                        alt={`${item.title} ${index + 1}`}
-                        className="w-full h-full object-cover"
-                      />
-                    </button>
-                  ))}
-                </div>
-              )}
             </div>
 
             {/* Description */}
@@ -392,6 +365,11 @@ export default function ItemDetailPage() {
                 {item.category.replace("_", " ")}
               </div>
 
+              {/* Title */}
+              <h1 className="text-2xl font-bold text-midnight mb-4">
+                {item.title}
+              </h1>
+
               {/* Status */}
               <div className="flex items-center gap-2 text-slate mb-6">
                 <Clock className="w-5 h-5" />
@@ -403,19 +381,10 @@ export default function ItemDetailPage() {
               </div>
 
               {/* Current/Winning Bid */}
-              <div className={`rounded-xl p-4 mb-6 ${
-                bids.length > 0 && bids[0]?.user?.username === session?.user?.name && !auctionEnded
-                  ? "bg-teal/10 border-2 border-teal"
-                  : "bg-violet/10"
-              }`}>
-                <div className="flex items-center justify-between mb-1">
-                  <p className="text-sm text-slate">
-                    {auctionEnded ? "Winning Bid" : item._count.bids > 0 ? "Current Bid" : "Starting Bid"}
-                  </p>
-                  {bids.length > 0 && bids[0]?.user?.username === session?.user?.name && !auctionEnded && (
-                    <span className="badge badge-teal text-sm font-bold">🎉 You&apos;re Winning!</span>
-                  )}
-                </div>
+              <div className="bg-violet/10 rounded-xl p-4 mb-6">
+                <p className="text-sm text-slate mb-1">
+                  {auctionEnded ? "Winning Bid" : item._count.bids > 0 ? "Current Bid" : "Starting Bid"}
+                </p>
                 <p className="text-4xl font-extrabold text-midnight">${currentBid}</p>
                 <p className="text-sm text-slate">{item._count.bids} bids</p>
               </div>
@@ -511,7 +480,6 @@ export default function ItemDetailPage() {
                           type="number"
                           value={bidAmount}
                           onChange={(e) => setBidAmount(Number(e.target.value))}
-                          onWheel={(e) => e.currentTarget.blur()}
                           min={minBid}
                           step={minIncrement}
                           className="input pl-8"

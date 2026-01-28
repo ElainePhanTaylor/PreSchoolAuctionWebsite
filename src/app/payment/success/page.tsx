@@ -1,32 +1,31 @@
 "use client"
 
-import { Suspense, useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { CheckCircle, Loader2 } from "lucide-react"
 
-function PaymentSuccessContent() {
+export default function PaymentSuccessPage() {
   const searchParams = useSearchParams()
   const sessionId = searchParams.get("session_id")
-  // If no session ID, assume direct navigation = success
-  const [status, setStatus] = useState<"loading" | "success" | "error">(
-    sessionId ? "loading" : "success"
-  )
+  const [status, setStatus] = useState<"loading" | "success" | "error">("loading")
 
   useEffect(() => {
-    if (!sessionId) return
-    
-    // Verify the payment session
-    fetch(`/api/payment/verify?session_id=${sessionId}`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success) {
-          setStatus("success")
-        } else {
-          setStatus("error")
-        }
-      })
-      .catch(() => setStatus("error"))
+    if (sessionId) {
+      // Verify the payment session
+      fetch(`/api/payment/verify?session_id=${sessionId}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success) {
+            setStatus("success")
+          } else {
+            setStatus("error")
+          }
+        })
+        .catch(() => setStatus("error"))
+    } else {
+      setStatus("success") // Direct navigation, assume success
+    }
   }, [sessionId])
 
   if (status === "loading") {
@@ -74,17 +73,5 @@ function PaymentSuccessContent() {
         </div>
       </div>
     </div>
-  )
-}
-
-export default function PaymentSuccessPage() {
-  return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
-      </div>
-    }>
-      <PaymentSuccessContent />
-    </Suspense>
   )
 }

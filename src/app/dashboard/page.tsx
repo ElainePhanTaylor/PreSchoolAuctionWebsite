@@ -8,7 +8,7 @@ import Image from "next/image"
 import { 
   Gavel, Settings, LogOut, User, 
   TrendingUp, Package, ArrowRight, AlertCircle,
-  CheckCircle, CreditCard, Clock, Loader2, Gift
+  CheckCircle, CreditCard, Clock, Loader2
 } from "lucide-react"
 
 interface BidItem {
@@ -94,7 +94,7 @@ export default function DashboardPage() {
     return null
   }
 
-  const isAdmin = (session.user as { isAdmin?: boolean })?.isAdmin
+  const isAdmin = (session.user as any)?.isAdmin
   const stats = dashboardData?.stats || { activeBids: 0, itemsWon: 0, itemsWinning: 0 }
 
   return (
@@ -145,30 +145,52 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        {/* Quick Stats - Compact */}
-        <div className="grid grid-cols-3 gap-3 mb-6">
-          <div className="card p-3 text-center">
-            <div className="flex items-center justify-center gap-2">
-              <TrendingUp className="w-4 h-4 text-coral" />
-              <p className="text-xl font-bold text-midnight">{stats.activeBids}</p>
+        {/* Quick Stats */}
+        <div className="grid grid-cols-3 gap-4 mb-8">
+          <div className="card p-6 text-center">
+            <div className="w-12 h-12 rounded-xl bg-coral/10 flex items-center justify-center mx-auto mb-3">
+              <TrendingUp className="w-6 h-6 text-coral" />
             </div>
-            <p className="text-silver text-xs font-medium">Active Bids</p>
+            <p className="text-3xl font-extrabold text-midnight">{stats.activeBids}</p>
+            <p className="text-silver text-sm font-medium">Active Bids</p>
           </div>
-          <div className="card p-3 text-center">
-            <div className="flex items-center justify-center gap-2">
-              <Gavel className="w-4 h-4 text-teal" />
-              <p className="text-xl font-bold text-midnight">{stats.itemsWinning}</p>
+          <div className="card p-6 text-center">
+            <div className="w-12 h-12 rounded-xl bg-teal/10 flex items-center justify-center mx-auto mb-3">
+              <Gavel className="w-6 h-6 text-teal" />
             </div>
-            <p className="text-silver text-xs font-medium">Winning</p>
+            <p className="text-3xl font-extrabold text-midnight">{stats.itemsWinning}</p>
+            <p className="text-silver text-sm font-medium">Currently Winning</p>
           </div>
-          <div className="card p-3 text-center">
-            <div className="flex items-center justify-center gap-2">
-              <Package className="w-4 h-4 text-violet" />
-              <p className="text-xl font-bold text-midnight">{stats.itemsWon}</p>
+          <div className="card p-6 text-center">
+            <div className="w-12 h-12 rounded-xl bg-violet/10 flex items-center justify-center mx-auto mb-3">
+              <Package className="w-6 h-6 text-violet" />
             </div>
-            <p className="text-silver text-xs font-medium">Won</p>
+            <p className="text-3xl font-extrabold text-midnight">{stats.itemsWon}</p>
+            <p className="text-silver text-sm font-medium">Items Won</p>
           </div>
         </div>
+
+        {/* Browse Auction Banner */}
+        <Link 
+          href="/auction" 
+          className="block p-8 mb-8 rounded-2xl text-white hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 group"
+          style={{ background: 'linear-gradient(135deg, #FF6B6B 0%, #8B5CF6 50%, #2DD4BF 100%)' }}
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-5">
+              <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center">
+                <Gavel className="w-8 h-8 text-white" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-extrabold mb-1">Browse Auction</h2>
+                <p className="text-white/80 text-lg">
+                  Discover amazing items and place your bids!
+                </p>
+              </div>
+            </div>
+            <ArrowRight className="w-8 h-8 text-white/80 group-hover:translate-x-2 transition-transform" />
+          </div>
+        </Link>
 
         {/* Admin Section */}
         {isAdmin && (
@@ -190,43 +212,6 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* Browse Auction */}
-        <div className="card p-6 bg-gradient-to-r from-coral/5 to-gold/5 border border-coral/20 mb-4">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-coral to-gold flex items-center justify-center">
-              <Gavel className="w-6 h-6 text-white" />
-            </div>
-            <div className="flex-1">
-              <h3 className="text-lg font-bold text-midnight">Browse Auction Items</h3>
-              <p className="text-slate text-sm">
-                Discover amazing items and place your bids!
-              </p>
-            </div>
-            <Link href="/auction" className="btn-coral flex items-center gap-2">
-              Browse Now
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-          </div>
-        </div>
-
-        {/* Donate an Item */}
-        <div className="card p-6 bg-gradient-to-r from-teal/5 to-violet/5 border border-teal/20 mb-8">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-teal to-violet flex items-center justify-center">
-              <Gift className="w-6 h-6 text-white" />
-            </div>
-            <div className="flex-1">
-              <h3 className="text-lg font-bold text-midnight">Donate an Item</h3>
-              <p className="text-slate text-sm">
-                Have something to contribute? Submit it for our auction!
-              </p>
-            </div>
-            <Link href="/donate" className="btn-outline flex items-center gap-2">
-              Donate Item
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-          </div>
-        </div>
 
         {loading ? (
           <div className="card p-12 text-center">

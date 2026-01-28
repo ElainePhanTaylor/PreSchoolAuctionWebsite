@@ -2,7 +2,6 @@ import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
-import { ItemStatus, Category } from "@prisma/client"
 
 export async function POST(request: Request) {
   try {
@@ -29,9 +28,8 @@ export async function POST(request: Request) {
 
     // Calculate starting bid if not provided (round to nearest $5)
     const roundToFive = (n: number) => Math.round(n / 5) * 5
-    const parsedStartingBid = startingBid ? parseFloat(startingBid) : null
-    const calculatedStartingBid = (parsedStartingBid && !isNaN(parsedStartingBid))
-      ? Math.floor(parsedStartingBid)  // Use exact value (whole dollars)
+    const calculatedStartingBid = startingBid 
+      ? parseFloat(startingBid) 
       : roundToFive(estimatedValue ? estimatedValue * 0.5 : 25)
 
     // Create the item
@@ -79,8 +77,8 @@ export async function GET(request: Request) {
 
     const items = await prisma.item.findMany({
       where: {
-        status: status as ItemStatus,
-        ...(category && category !== "ALL" && { category: category as Category }),
+        status: status as any,
+        ...(category && category !== "ALL" && { category: category as any }),
         ...(search && {
           OR: [
             { title: { contains: search, mode: "insensitive" } },
