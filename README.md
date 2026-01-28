@@ -169,3 +169,4 @@ The site is deployed on Railway. To deploy updates:
 ## 📝 License
 
 Private - San Anselmo Cooperative Nursery School
+
