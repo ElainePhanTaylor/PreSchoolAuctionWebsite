@@ -127,6 +127,7 @@ Admin privileges are granted based on email address. The following emails have a
 
 - `elainph@gmail.com`
 - `taylor.andreas.elaine@gmail.com`
+- `shabnazy@gmail.com`
 
 To add more admins, edit `src/lib/auth.ts` and add emails to the `ADMIN_EMAILS` array.
 

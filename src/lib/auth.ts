@@ -7,6 +7,7 @@ import bcrypt from "bcryptjs"
 const ADMIN_EMAILS = [
   "elainph@gmail.com",
   "taylor.andreas.elaine@gmail.com",
+  "shabnazy@gmail.com",
 ]
 
 export const authOptions: NextAuthOptions = {

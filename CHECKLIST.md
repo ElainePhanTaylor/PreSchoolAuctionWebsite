@@ -4,54 +4,54 @@
 
 ## 🧪 Pre-Launch Testing
 
-### Authentication
-- [ ] Register new account
-- [ ] Login with existing account
-- [ ] Logout works
-- [ ] Session persists on refresh
-- [ ] Non-admin cannot access /admin
-- [ ] Admin can access /admin
+### Authentication ✅
+- [x] Register new account
+- [x] Login with existing account
+- [x] Logout works
+- [x] Session persists on refresh
+- [x] Non-admin cannot access /admin
+- [x] Admin can access /admin
 
-### Browsing Items
-- [ ] Homepage loads items from database
-- [ ] Auction page shows all approved items
-- [ ] Item detail page loads correctly
-- [ ] Images display properly
-- [ ] Bid count is accurate
+### Browsing Items ✅
+- [x] Homepage loads items from database
+- [x] Auction page shows all approved items
+- [x] Item detail page loads correctly
+- [x] Images display properly
+- [x] Bid count is accurate
 
-### Bidding (as logged-in user)
-- [ ] Can place valid bid
-- [ ] Cannot bid below minimum
-- [ ] Cannot bid $0 or negative
-- [ ] Cannot outbid yourself (shows message)
-- [ ] Bid updates item's current bid
-- [ ] Bid appears in bid history
+### Bidding (as logged-in user) ✅
+- [x] Can place valid bid
+- [x] Cannot bid below minimum
+- [x] Cannot bid $0 or negative
+- [x] Cannot outbid yourself (shows message)
+- [x] Bid updates item's current bid
+- [x] Bid appears in bid history
 
-### Bidding (edge cases)
-- [ ] Cannot bid when logged out (redirects to login)
-- [ ] Cannot bid on non-existent item
-- [ ] Cannot bid after auction ends
+### Bidding (edge cases) ✅
+- [x] Cannot bid when logged out (redirects to login)
+- [x] Cannot bid on non-existent item
+- [x] Cannot bid after auction ends
 
-### Admin - Items
-- [ ] Can view all items in dashboard
-- [ ] Can add new item with all fields
-- [ ] Can add item with photo URLs
-- [ ] Starting bid auto-calculates to nearest $5
-- [ ] Can delete item (including one with bids)
-- [ ] Deleted item no longer shows on auction page
+### Admin - Items ✅
+- [x] Can view all items in dashboard
+- [x] Can add new item with all fields
+- [x] Can add item with photo URLs
+- [x] Starting bid auto-calculates to nearest $5
+- [x] Can delete item (including one with bids)
+- [x] Deleted item no longer shows on auction page
 
-### Admin - Auction Settings
-- [ ] Can set auction end time
-- [ ] Can set minimum bid increment
-- [ ] Can set anti-sniping minutes
+### Admin - Auction Settings ✅
+- [x] Can set auction end time
+- [x] Can set minimum bid increment
+- [x] Can set anti-sniping minutes
 
-### Payments
-- [ ] Winner sees "Pay Now" button
-- [ ] Stripe checkout loads correct amount
-- [ ] Successful payment recorded
-- [ ] Failed payment handled gracefully
-- [ ] Cannot pay for item you didn't win
-- [ ] Check payment option available
+### Payments ✅
+- [x] Winner sees "Pay Now" button
+- [x] Stripe checkout loads correct amount
+- [x] Successful payment recorded
+- [x] Failed payment handled gracefully
+- [x] Cannot pay for item you didn't win
+- [x] Check payment option available
 
 ### Emails
 - [ ] Outbid notification sent
