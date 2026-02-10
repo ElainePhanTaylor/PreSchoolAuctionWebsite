@@ -1,18 +1,21 @@
 import { v2 as cloudinary } from "cloudinary"
 
-// Only configure if all env vars are present (prevents build errors)
-if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
-  cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET,
-  })
-}
+// Configure Cloudinary - use empty strings as fallback during build
+// The actual calls will fail at runtime without proper env vars, but build will pass
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME || "placeholder",
+  api_key: process.env.CLOUDINARY_API_KEY || "placeholder",
+  api_secret: process.env.CLOUDINARY_API_SECRET || "placeholder",
+})
 
 export { cloudinary }
 
 // Helper to upload a base64 image and return the URL
 export async function uploadImage(base64Data: string): Promise<string> {
+  if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+    throw new Error("Cloudinary is not configured. Please set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET environment variables.")
+  }
+  
   const result = await cloudinary.uploader.upload(base64Data, {
     folder: "auction-items",
     transformation: [

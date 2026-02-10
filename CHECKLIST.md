@@ -73,6 +73,7 @@
 
 - [x] ~~Bid confirmation popup~~ → Done
 - [x] ~~Admin payments table~~ → Done
+- [ ] Remove up/down spinner arrows on Estimated Value and Starting Bid fields
 - [ ] Max characters for item description (with counter)
 - [ ] Phone number formatting with dashes (auto-format as user types)
 - [ ] Password reset functionality
