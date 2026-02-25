@@ -4,11 +4,42 @@ import Link from "next/link";
 import Image from "next/image";
 import { useSession } from "next-auth/react";
 import { Sparkles, Heart, Gavel, Users, ArrowRight, Clock, TrendingUp, Menu, X } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
+interface AuctionItem {
+  id: string
+  title: string
+  category: string
+  currentBid: number | null
+  startingBid: number
+  isFeatured: boolean
+  _count: { bids: number }
+  photos: { url: string }[]
+}
 
 export default function Home() {
   const { data: session, status } = useSession();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [featuredItems, setFeaturedItems] = useState<AuctionItem[]>([]);
+  const [trendingItems, setTrendingItems] = useState<AuctionItem[]>([]);
+
+  useEffect(() => {
+    async function fetchItems() {
+      try {
+        const res = await fetch("/api/items?status=APPROVED")
+        if (res.ok) {
+          const items: AuctionItem[] = await res.json()
+          const featured = items.filter(i => i.isFeatured).slice(0, 3)
+          setFeaturedItems(featured)
+          const sorted = [...items].sort((a, b) => b._count.bids - a._count.bids).slice(0, 3)
+          setTrendingItems(sorted)
+        }
+      } catch {
+        // Silently fail — homepage still works with empty items
+      }
+    }
+    fetchItems()
+  }, []);
 
   return (
     <div className="min-h-screen gradient-mesh overflow-x-hidden">
@@ -161,41 +192,65 @@ export default function Home() {
 
               {/* Floating Cards */}
               <div className="relative h-[500px] z-10">
-                {/* Card 1 */}
-                <div className="card absolute top-0 right-0 w-72 p-4 animate-float shadow-xl" style={{ animationDelay: '0s' }}>
-                  <div className="aspect-[4/3] rounded-xl mb-3 overflow-hidden">
-                    <Image src="/images/wine.png" alt="Wine Country Getaway" width={300} height={225} className="w-full h-full object-cover" />
+                {featuredItems.length > 0 ? (
+                  <>
+                    {featuredItems[0] && (
+                      <div className="card absolute top-0 right-0 w-72 p-4 animate-float shadow-xl" style={{ animationDelay: '0s' }}>
+                        <div className="aspect-[4/3] rounded-xl mb-3 overflow-hidden">
+                          {featuredItems[0].photos[0]?.url ? (
+                            <img src={featuredItems[0].photos[0].url} alt={featuredItems[0].title} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full bg-pearl" />
+                          )}
+                        </div>
+                        <p className="font-bold text-midnight">{featuredItems[0].title}</p>
+                        <div className="flex items-center justify-between mt-2">
+                          <span className="text-2xl font-extrabold text-coral">${featuredItems[0].currentBid ?? featuredItems[0].startingBid}</span>
+                          <span className="text-silver text-sm">{featuredItems[0]._count.bids} bids</span>
+                        </div>
+                      </div>
+                    )}
+                    {featuredItems[1] && (
+                      <div className="card absolute top-32 left-0 w-64 p-4 animate-float shadow-xl" style={{ animationDelay: '0.5s' }}>
+                        <div className="aspect-[4/3] rounded-xl mb-3 overflow-hidden">
+                          {featuredItems[1].photos[0]?.url ? (
+                            <img src={featuredItems[1].photos[0].url} alt={featuredItems[1].title} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full bg-pearl" />
+                          )}
+                        </div>
+                        <p className="font-bold text-midnight">{featuredItems[1].title}</p>
+                        <div className="flex items-center justify-between mt-2">
+                          <span className="text-2xl font-extrabold text-coral">${featuredItems[1].currentBid ?? featuredItems[1].startingBid}</span>
+                          <span className="text-silver text-sm">{featuredItems[1]._count.bids} bids</span>
+                        </div>
+                      </div>
+                    )}
+                    {featuredItems[2] && (
+                      <div className="card absolute bottom-0 right-12 w-60 p-4 animate-float shadow-xl" style={{ animationDelay: '1s' }}>
+                        <div className="aspect-[4/3] rounded-xl mb-3 overflow-hidden">
+                          {featuredItems[2].photos[0]?.url ? (
+                            <img src={featuredItems[2].photos[0].url} alt={featuredItems[2].title} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full bg-pearl" />
+                          )}
+                        </div>
+                        <p className="font-bold text-midnight">{featuredItems[2].title}</p>
+                        <div className="flex items-center justify-between mt-2">
+                          <span className="text-2xl font-extrabold text-coral">${featuredItems[2].currentBid ?? featuredItems[2].startingBid}</span>
+                          <span className="text-silver text-sm">{featuredItems[2]._count.bids} bids</span>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="flex items-center justify-center h-full">
+                    <div className="text-center text-silver">
+                      <Sparkles className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                      <p className="font-medium">Items coming soon!</p>
+                    </div>
                   </div>
-                  <p className="font-bold text-midnight">Wine Country Getaway</p>
-                  <div className="flex items-center justify-between mt-2">
-                    <span className="text-2xl font-extrabold text-coral">$450</span>
-                    <span className="text-silver text-sm">8 bids</span>
-                  </div>
-                </div>
-
-                {/* Card 2 */}
-                <div className="card absolute top-32 left-0 w-64 p-4 animate-float shadow-xl" style={{ animationDelay: '0.5s' }}>
-                  <div className="aspect-[4/3] rounded-xl mb-3 overflow-hidden">
-                    <Image src="/images/artclass.png" alt="Art Class Bundle" width={300} height={225} className="w-full h-full object-cover" />
-                  </div>
-                  <p className="font-bold text-midnight">Art Class Bundle</p>
-                  <div className="flex items-center justify-between mt-2">
-                    <span className="text-2xl font-extrabold text-coral">$180</span>
-                    <span className="text-silver text-sm">5 bids</span>
-                  </div>
-                </div>
-
-                {/* Card 3 */}
-                <div className="card absolute bottom-0 right-12 w-60 p-4 animate-float shadow-xl" style={{ animationDelay: '1s' }}>
-                  <div className="aspect-[4/3] rounded-xl mb-3 overflow-hidden">
-                    <Image src="/images/giftcards.png" alt="Gift Card Bundle" width={300} height={225} className="w-full h-full object-cover" />
-                  </div>
-                  <p className="font-bold text-midnight">Gift Card Bundle</p>
-                  <div className="flex items-center justify-between mt-2">
-                    <span className="text-2xl font-extrabold text-coral">$120</span>
-                    <span className="text-silver text-sm">3 bids</span>
-                  </div>
-                </div>
+                )}
               </div>
             </div>
           </div>
@@ -249,53 +304,57 @@ export default function Home() {
       </section>
 
       {/* Live Auction Preview */}
-      <section className="py-24 px-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-12">
-            <div>
-              <div className="badge badge-teal mb-4">
-                <Clock className="w-3 h-3" />
-                Live Now
+      {trendingItems.length > 0 && (
+        <section className="py-24 px-6">
+          <div className="max-w-6xl mx-auto">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-12">
+              <div>
+                <div className="badge badge-teal mb-4">
+                  <Clock className="w-3 h-3" />
+                  Live Now
+                </div>
+                <h2 className="text-4xl font-extrabold text-midnight">
+                  Trending Items
+                </h2>
               </div>
-              <h2 className="text-4xl font-extrabold text-midnight">
-                Trending Items
-              </h2>
-            </div>
-            <Link href="/auction" className="btn-secondary inline-flex items-center gap-2">
-              View All Items
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-6">
-            {[
-              { image: "/images/beachhouse.png", title: "Beach House Weekend", price: 650, bids: 12, category: "Experiences" },
-              { image: "/images/pizza.png", title: "Pizza Party Package", price: 85, bids: 6, category: "Food & Dining" },
-              { image: "/images/spa.png", title: "Spa Day for Two", price: 320, bids: 9, category: "Services" },
-            ].map((item, index) => (
-              <Link href={`/auction/${index + 1}`} key={index} className="card p-5 group cursor-pointer">
-                <div className="aspect-[4/3] rounded-xl mb-4 overflow-hidden group-hover:scale-[1.02] transition-transform">
-                  <Image src={item.image} alt={item.title} width={400} height={300} className="w-full h-full object-cover" />
-                </div>
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="badge badge-violet">{item.category}</span>
-                </div>
-                <h3 className="text-lg font-bold text-midnight mb-3">{item.title}</h3>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-silver">Current Bid</p>
-                    <p className="text-2xl font-extrabold text-midnight">${item.price}</p>
-                  </div>
-                  <div className="flex items-center gap-1 text-silver">
-                    <TrendingUp className="w-4 h-4" />
-                    <span className="text-sm font-medium">{item.bids} bids</span>
-                  </div>
-                </div>
+              <Link href="/auction" className="btn-secondary inline-flex items-center gap-2">
+                View All Items
+                <ArrowRight className="w-4 h-4" />
               </Link>
-            ))}
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-6">
+              {trendingItems.map((item) => (
+                <Link href={`/auction/${item.id}`} key={item.id} className="card p-5 group cursor-pointer">
+                  <div className="aspect-[4/3] rounded-xl mb-4 overflow-hidden group-hover:scale-[1.02] transition-transform">
+                    {item.photos[0]?.url ? (
+                      <img src={item.photos[0].url} alt={item.title} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full bg-pearl flex items-center justify-center">
+                        <Sparkles className="w-8 h-8 text-silver" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="badge badge-violet">{item.category.replace("_", " ")}</span>
+                  </div>
+                  <h3 className="text-lg font-bold text-midnight mb-3">{item.title}</h3>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-silver">Current Bid</p>
+                      <p className="text-2xl font-extrabold text-midnight">${item.currentBid ?? item.startingBid}</p>
+                    </div>
+                    <div className="flex items-center gap-1 text-silver">
+                      <TrendingUp className="w-4 h-4" />
+                      <span className="text-sm font-medium">{item._count.bids} bids</span>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
 
       {/* Footer */}
