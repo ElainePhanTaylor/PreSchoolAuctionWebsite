@@ -17,7 +17,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Admin access required" }, { status: 403 })
     }
 
-    const { title, description, category, estimatedValue, startingBid, isFeatured, photos } = await request.json()
+    const { title, description, category, donorName, estimatedValue, startingBid, isFeatured, photos } = await request.json()
 
     if (!title || !description || !category || !photos || photos.length === 0) {
       return NextResponse.json(
@@ -41,6 +41,7 @@ export async function POST(request: Request) {
         estimatedValue: estimatedValue || null,
         startingBid: calculatedStartingBid,
         isFeatured: isFeatured || false,
+        donorName: donorName || null,
         donorId: user.id,
         status: "APPROVED", // Admin-created items go live immediately
         photos: {

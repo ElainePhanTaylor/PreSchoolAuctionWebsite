@@ -475,14 +475,14 @@ export default function ItemDetailPage() {
                     </label>
                     <div className="flex gap-2">
                       <div className="relative flex-1">
-                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate">$</span>
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate font-medium">$</span>
                         <input
-                          type="number"
-                          value={bidAmount}
-                          onChange={(e) => setBidAmount(Number(e.target.value))}
-                          min={minBid}
-                          step={minIncrement}
-                          className="input pl-8"
+                          type="text"
+                          inputMode="decimal"
+                          value={bidAmount || ""}
+                          onChange={(e) => setBidAmount(Number(e.target.value.replace(/[^0-9.]/g, "")))}
+                          placeholder={String(minBid)}
+                          className="input !pl-10"
                           disabled={bidStatus === "submitting"}
                         />
                       </div>

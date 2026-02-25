@@ -29,6 +29,7 @@ export default function AddItemPage() {
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
   const [category, setCategory] = useState("")
+  const [donorName, setDonorName] = useState("")
   const [estimatedValue, setEstimatedValue] = useState("")
   const [startingBid, setStartingBid] = useState("")
   const [isFeatured, setIsFeatured] = useState(false)
@@ -168,6 +169,7 @@ export default function AddItemPage() {
           title,
           description,
           category,
+          donorName: donorName || null,
           estimatedValue: estimatedValue ? parseFloat(estimatedValue) : null,
           startingBid: startingBid ? parseFloat(startingBid) : null,
           isFeatured,
@@ -308,6 +310,22 @@ export default function AddItemPage() {
 
             <div>
               <label className="block text-sm font-semibold text-midnight mb-2">
+                Donated By
+              </label>
+              <input
+                type="text"
+                value={donorName}
+                onChange={(e) => setDonorName(e.target.value)}
+                className="input"
+                placeholder="e.g., The Smith Family"
+              />
+              <p className="text-xs text-silver mt-1">
+                Name of the person or family who donated this item
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-midnight mb-2">
                 Description *
               </label>
               <textarea
@@ -345,13 +363,12 @@ export default function AddItemPage() {
                   Estimated Value ($)
                 </label>
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="decimal"
                   value={estimatedValue}
-                  onChange={(e) => setEstimatedValue(e.target.value)}
+                  onChange={(e) => setEstimatedValue(e.target.value.replace(/[^0-9.]/g, ""))}
                   className="input"
                   placeholder="e.g., 500"
-                  min="0"
-                  step="1"
                 />
               </div>
             </div>
@@ -362,13 +379,12 @@ export default function AddItemPage() {
                   Starting Bid ($)
                 </label>
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="decimal"
                   value={startingBid}
-                  onChange={(e) => setStartingBid(e.target.value)}
+                  onChange={(e) => setStartingBid(e.target.value.replace(/[^0-9.]/g, ""))}
                   className="input"
                   placeholder="Leave blank to auto-calculate (50% of value)"
-                  min="0"
-                  step="1"
                 />
                 <p className="text-xs text-silver mt-1">
                   If blank, will be set to 50% of estimated value or $25
