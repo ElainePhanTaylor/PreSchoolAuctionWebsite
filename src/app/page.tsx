@@ -33,7 +33,7 @@ export default function Home() {
                 How It Works
               </Link>
             </nav>
-            {session ? (
+            {status === "authenticated" ? (
               <div className="hidden md:flex items-center gap-5">
                 <Link href="/dashboard" className="btn-primary text-xl px-8 py-4">
                   My Dashboard
@@ -49,7 +49,7 @@ export default function Home() {
                 </Link>
               </div>
             )}
-            {status === "unauthenticated" && (
+            {status !== "authenticated" && (
               <Link href="/login" className="md:hidden text-sm font-semibold text-midnight hover:text-violet transition-colors">
                 Log In
               </Link>
@@ -71,7 +71,7 @@ export default function Home() {
               <Link href="/auction" className="block px-4 py-3 rounded-lg text-midnight font-semibold hover:bg-pearl transition-colors" onClick={() => setMobileMenuOpen(false)}>
                 Browse Auction
               </Link>
-              {session ? (
+              {status === "authenticated" ? (
                 <>
                   <Link href="/dashboard" className="block px-4 py-3 rounded-lg text-midnight font-semibold hover:bg-pearl transition-colors" onClick={() => setMobileMenuOpen(false)}>
                     My Dashboard
