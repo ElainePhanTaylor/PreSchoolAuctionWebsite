@@ -21,7 +21,6 @@ export default withAuth(
       authorized: ({ token, req }) => {
         const isAuthRoute = req.nextUrl.pathname.startsWith("/dashboard") ||
                            req.nextUrl.pathname.startsWith("/admin") ||
-                           req.nextUrl.pathname.startsWith("/donate") ||
                            req.nextUrl.pathname.startsWith("/api/admin")
 
         if (isAuthRoute && !token) {
@@ -37,7 +36,6 @@ export const config = {
   matcher: [
     "/dashboard/:path*",
     "/admin/:path*",
-    "/donate/:path*",
     "/api/admin/:path*",
   ],
 }

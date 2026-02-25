@@ -193,9 +193,6 @@ export default function AuctionPage() {
                   <Link href="/dashboard" className="block px-4 py-2.5 rounded-lg text-midnight font-medium hover:bg-pearl transition-colors text-sm" onClick={() => setMobileNavOpen(false)}>
                     My Dashboard
                   </Link>
-                  <Link href="/donate" className="block px-4 py-2.5 rounded-lg text-midnight font-medium hover:bg-pearl transition-colors text-sm" onClick={() => setMobileNavOpen(false)}>
-                    Donate Item
-                  </Link>
                 </>
               ) : (
                 <>

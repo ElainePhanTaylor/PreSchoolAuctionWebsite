@@ -57,11 +57,6 @@ export default function Header() {
               My Dashboard
             </Link>
           )}
-          {session && (
-            <Link href="/donate" className="text-slate hover:text-violet font-medium transition-colors">
-              Donate Item
-            </Link>
-          )}
           {isAdmin && (
             <Link href="/admin" className="text-violet font-medium transition-colors">
               Admin
@@ -161,15 +156,6 @@ export default function Header() {
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   My Dashboard
-                </Link>
-              )}
-              {session && (
-                <Link
-                  href="/donate"
-                  className="flex items-center gap-3 px-4 py-3 rounded-xl text-midnight font-medium hover:bg-pearl transition-colors"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Donate Item
                 </Link>
               )}
               {isAdmin && (

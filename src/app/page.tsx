@@ -71,9 +71,6 @@ export default function Home() {
                   <Link href="/dashboard" className="block px-4 py-3 rounded-lg text-midnight font-semibold hover:bg-pearl transition-colors" onClick={() => setMobileMenuOpen(false)}>
                     My Dashboard
                   </Link>
-                  <Link href="/donate" className="block px-4 py-3 rounded-lg text-midnight font-semibold hover:bg-pearl transition-colors" onClick={() => setMobileMenuOpen(false)}>
-                    Donate Item
-                  </Link>
                 </>
               ) : (
                 <>
