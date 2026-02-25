@@ -4,11 +4,11 @@ import { useState, useRef } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import Image from "next/image"
 import { 
   Upload, X, Image as ImageIcon, 
   ChevronDown, AlertCircle, CheckCircle, ArrowLeft, Loader2
 } from "lucide-react"
+import Header from "@/components/Header"
 
 const CATEGORIES = [
   { value: "EXPERIENCES", label: "Experiences" },
@@ -194,19 +194,7 @@ export default function DonatePage() {
   if (success) {
     return (
       <div className="min-h-screen bg-pearl flex flex-col">
-        <header className="bg-white/80 backdrop-blur-sm shadow-sm">
-          <div className="max-w-6xl mx-auto px-4 py-4">
-            <Link href="/dashboard" className="flex items-center gap-3 w-fit">
-              <Image 
-                src="/images/IMG_7446.jpeg" 
-                alt="SACNS" 
-                width={100} 
-                height={40} 
-                className="h-10 w-auto object-contain"
-              />
-            </Link>
-          </div>
-        </header>
+        <Header />
 
         <div className="flex-1 flex items-center justify-center px-4 py-12">
           <div className="card max-w-md w-full p-8 text-center">
@@ -241,23 +229,7 @@ export default function DonatePage() {
 
   return (
     <div className="min-h-screen bg-pearl">
-      {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm shadow-sm sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/dashboard" className="flex items-center gap-3">
-            <Image 
-              src="/images/IMG_7446.jpeg" 
-              alt="SACNS" 
-              width={100} 
-              height={40} 
-              className="h-10 w-auto object-contain"
-            />
-          </Link>
-          <Link href="/dashboard" className="btn-primary">
-            My Dashboard
-          </Link>
-        </div>
-      </header>
+      <Header />
 
       {/* Back Link */}
       <div className="max-w-2xl mx-auto px-4 py-4">

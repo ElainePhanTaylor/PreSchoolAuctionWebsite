@@ -21,111 +21,116 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Item ID and bid amount are required" }, { status: 400 })
     }
 
-    // 2. Get item from database
-    const item = await prisma.item.findUnique({
-      where: { id: itemId },
-      include: {
-        bids: {
-          orderBy: { amount: "desc" },
-          take: 1,
-          include: { user: { select: { id: true, email: true, username: true } } }
+    // Validate amount is a safe number
+    if (!Number.isFinite(amount) || amount <= 0) {
+      return NextResponse.json({ error: "Invalid bid amount" }, { status: 400 })
+    }
+
+    // Run entire bid flow inside a serializable transaction to prevent race conditions
+    const result = await prisma.$transaction(async (tx) => {
+      const item = await tx.item.findUnique({
+        where: { id: itemId },
+        include: {
+          bids: {
+            orderBy: { amount: "desc" },
+            take: 1,
+            include: { user: { select: { id: true, email: true, username: true } } }
+          }
+        }
+      })
+
+      if (!item) {
+        return { error: "Item not found", status: 404 } as const
+      }
+
+      if (item.status !== "APPROVED") {
+        return { error: "This item is not available for bidding", status: 400 } as const
+      }
+
+      const settings = await tx.auctionSettings.findFirst()
+      const minIncrement = settings?.minBidIncrement ?? 10
+      const antiSnipingMinutes = settings?.antiSnipingMinutes ?? 2
+      const auctionEndTime = settings?.auctionEndTime
+
+      if (auctionEndTime && new Date() > auctionEndTime) {
+        return { error: "The auction has ended", status: 400 } as const
+      }
+
+      const currentHighBidder = item.bids[0]?.user
+      if (currentHighBidder && currentHighBidder.id === user.id) {
+        return { error: "You already have the highest bid! No need to bid again.", status: 400 } as const
+      }
+
+      const currentBid = item.currentBid ?? item.startingBid
+      const minBid = currentBid + minIncrement
+
+      if (amount < minBid) {
+        return {
+          error: `Minimum bid is $${minBid}. Please bid at least $${minIncrement} more than the current bid.`,
+          status: 400,
+        } as const
+      }
+
+      // Anti-sniping: extend auction if bid is within X minutes of end
+      let newEndTime = auctionEndTime
+      if (auctionEndTime) {
+        const msUntilEnd = auctionEndTime.getTime() - Date.now()
+        const antiSnipingMs = antiSnipingMinutes * 60 * 1000
+
+        if (msUntilEnd > 0 && msUntilEnd < antiSnipingMs) {
+          newEndTime = new Date(Date.now() + antiSnipingMs)
+          if (settings) {
+            await tx.auctionSettings.update({
+              where: { id: settings.id },
+              data: { auctionEndTime: newEndTime }
+            })
+          }
         }
       }
-    })
 
-    if (!item) {
-      return NextResponse.json({ error: "Item not found" }, { status: 404 })
-    }
+      const previousHighBidder = item.bids[0]?.user
 
-    // 3. Check if item is approved (active in auction)
-    if (item.status !== "APPROVED") {
-      return NextResponse.json({ error: "This item is not available for bidding" }, { status: 400 })
-    }
-
-    // 4. Get auction settings
-    const settings = await prisma.auctionSettings.findFirst()
-    const minIncrement = settings?.minBidIncrement ?? 10
-    const antiSnipingMinutes = settings?.antiSnipingMinutes ?? 2
-    const auctionEndTime = settings?.auctionEndTime
-
-    // 5. Check if auction has ended
-    if (auctionEndTime && new Date() > auctionEndTime) {
-      return NextResponse.json({ error: "The auction has ended" }, { status: 400 })
-    }
-
-    // 6. Check if user is already the highest bidder
-    const currentHighBidder = item.bids[0]?.user
-    if (currentHighBidder && currentHighBidder.id === user.id) {
-      return NextResponse.json(
-        { error: "You already have the highest bid! No need to bid again." },
-        { status: 400 }
-      )
-    }
-
-    // 7. Calculate minimum bid (server-side, never trust client)
-    const currentBid = item.currentBid ?? item.startingBid
-    const minBid = currentBid + minIncrement
-
-    if (amount < minBid) {
-      return NextResponse.json(
-        { error: `Minimum bid is $${minBid}. Please bid at least $${minIncrement} more than the current bid.` },
-        { status: 400 }
-      )
-    }
-
-    // 8. Check anti-sniping: if bid is within X minutes of end, extend auction
-    let newEndTime = auctionEndTime
-    if (auctionEndTime) {
-      const msUntilEnd = auctionEndTime.getTime() - Date.now()
-      const antiSnipingMs = antiSnipingMinutes * 60 * 1000
-
-      if (msUntilEnd > 0 && msUntilEnd < antiSnipingMs) {
-        // Extend auction by anti-sniping minutes
-        newEndTime = new Date(Date.now() + antiSnipingMs)
-        
-        // Update auction settings with new end time
-        if (settings) {
-          await prisma.auctionSettings.update({
-            where: { id: settings.id },
-            data: { auctionEndTime: newEndTime }
-          })
+      const bid = await tx.bid.create({
+        data: {
+          amount,
+          userId: user.id,
+          itemId: item.id,
         }
-      }
+      })
+
+      await tx.item.update({
+        where: { id: item.id },
+        data: { currentBid: amount }
+      })
+
+      return {
+        success: true,
+        bid,
+        item,
+        previousHighBidder,
+        auctionExtended: newEndTime !== auctionEndTime,
+        newEndTime,
+      } as const
+    }, { isolationLevel: "Serializable" })
+
+    if ("error" in result) {
+      return NextResponse.json({ error: result.error }, { status: result.status })
     }
 
-    // 8. Get previous high bidder for outbid notification
-    const previousHighBidder = item.bids[0]?.user
-
-    // 9. Create the bid
-    const bid = await prisma.bid.create({
-      data: {
-        amount,
-        userId: user.id,
-        itemId: item.id,
-      }
-    })
-
-    // 10. Update item's current bid
-    await prisma.item.update({
-      where: { id: item.id },
-      data: { currentBid: amount }
-    })
-
-    // 11. Send outbid notification email to previous bidder
-    if (previousHighBidder && previousHighBidder.id !== user.id) {
-      // Don't await - send email in background
-      sendOutbidEmail(previousHighBidder.email, item.title, amount, item.id)
+    // Send outbid notification outside the transaction (non-critical)
+    if (result.previousHighBidder && result.previousHighBidder.id !== user.id) {
+      sendOutbidEmail(result.previousHighBidder.email, result.item.title, amount, result.item.id)
     }
 
     return NextResponse.json({
       message: "Bid placed successfully!",
       bid: {
-        id: bid.id,
-        amount: bid.amount,
-        itemId: bid.itemId,
+        id: result.bid.id,
+        amount: result.bid.amount,
+        itemId: result.bid.itemId,
       },
-      auctionExtended: newEndTime !== auctionEndTime,
-      newEndTime: newEndTime,
+      auctionExtended: result.auctionExtended,
+      newEndTime: result.newEndTime,
     })
 
   } catch (error) {

@@ -4,7 +4,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
-import { Mail, Lock, User, Phone, AlertCircle, CheckCircle, ArrowLeft } from "lucide-react"
+import { Mail, Lock, User, Phone, AlertCircle, CheckCircle, ArrowLeft, MapPin } from "lucide-react"
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -14,6 +14,10 @@ export default function RegisterPage() {
     email: "",
     username: "",
     phone: "",
+    streetAddress: "",
+    city: "",
+    state: "",
+    zipCode: "",
     password: "",
     confirmPassword: "",
   })
@@ -50,6 +54,10 @@ export default function RegisterPage() {
           email: formData.email,
           username: formData.username,
           phone: formData.phone,
+          streetAddress: formData.streetAddress,
+          city: formData.city,
+          state: formData.state,
+          zipCode: formData.zipCode,
           password: formData.password,
         }),
       })
@@ -193,6 +201,74 @@ export default function RegisterPage() {
                     onChange={handleChange}
                     className="input !pl-12"
                     placeholder="(415) 555-0123"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="streetAddress" className="block text-sm font-semibold text-midnight mb-2">
+                  Street Address
+                </label>
+                <div className="relative">
+                  <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-silver" />
+                  <input
+                    id="streetAddress"
+                    name="streetAddress"
+                    type="text"
+                    value={formData.streetAddress}
+                    onChange={handleChange}
+                    className="input !pl-12"
+                    placeholder="123 Main St"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-6 gap-3">
+                <div className="col-span-3">
+                  <label htmlFor="city" className="block text-sm font-semibold text-midnight mb-2">
+                    City
+                  </label>
+                  <input
+                    id="city"
+                    name="city"
+                    type="text"
+                    value={formData.city}
+                    onChange={handleChange}
+                    className="input"
+                    placeholder="San Anselmo"
+                    required
+                  />
+                </div>
+                <div className="col-span-1">
+                  <label htmlFor="state" className="block text-sm font-semibold text-midnight mb-2">
+                    State
+                  </label>
+                  <input
+                    id="state"
+                    name="state"
+                    type="text"
+                    value={formData.state}
+                    onChange={handleChange}
+                    className="input"
+                    placeholder="CA"
+                    maxLength={2}
+                    required
+                  />
+                </div>
+                <div className="col-span-2">
+                  <label htmlFor="zipCode" className="block text-sm font-semibold text-midnight mb-2">
+                    ZIP
+                  </label>
+                  <input
+                    id="zipCode"
+                    name="zipCode"
+                    type="text"
+                    value={formData.zipCode}
+                    onChange={handleChange}
+                    className="input"
+                    placeholder="94960"
                     required
                   />
                 </div>

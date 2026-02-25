@@ -64,7 +64,7 @@ export async function PATCH(
     // Whitelist allowed fields
     const allowedFields = [
       "title", "description", "category", "estimatedValue",
-      "startingBid", "currentBid", "isFeatured", "status"
+      "startingBid", "isFeatured", "status"
     ]
     
     const data: Record<string, unknown> = {}
@@ -107,10 +107,13 @@ export async function DELETE(
 
     const { id } = await params
 
-    // Delete related records first (photos, bids)
-    await prisma.photo.deleteMany({ where: { itemId: id } })
-    await prisma.bid.deleteMany({ where: { itemId: id } })
-    await prisma.item.delete({ where: { id } })
+    await prisma.$transaction(async (tx) => {
+      await tx.payment.deleteMany({ where: { itemId: id } })
+      await tx.watchlist.deleteMany({ where: { itemId: id } })
+      await tx.photo.deleteMany({ where: { itemId: id } })
+      await tx.bid.deleteMany({ where: { itemId: id } })
+      await tx.item.delete({ where: { id } })
+    })
 
     return NextResponse.json({ message: "Item deleted" })
   } catch (error) {

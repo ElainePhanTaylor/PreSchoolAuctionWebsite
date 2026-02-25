@@ -3,10 +3,12 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useSession } from "next-auth/react";
-import { Sparkles, Heart, Gavel, Users, ArrowRight, Clock, TrendingUp } from "lucide-react";
+import { Sparkles, Heart, Gavel, Users, ArrowRight, Clock, TrendingUp, Menu, X } from "lucide-react";
+import { useState } from "react";
 
 export default function Home() {
   const { data: session } = useSession();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
     <div className="min-h-screen gradient-mesh">
@@ -32,13 +34,13 @@ export default function Home() {
               </Link>
             </nav>
             {session ? (
-              <div className="flex items-center gap-5">
+              <div className="hidden md:flex items-center gap-5">
                 <Link href="/dashboard" className="btn-primary text-xl px-8 py-4">
                   My Dashboard
                 </Link>
               </div>
             ) : (
-              <div className="flex items-center gap-5">
+              <div className="hidden md:flex items-center gap-5">
                 <Link href="/login" className="text-2xl text-midnight font-semibold hover:text-violet transition-colors">
                   Log In
                 </Link>
@@ -47,7 +49,44 @@ export default function Home() {
                 </Link>
               </div>
             )}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="md:hidden p-2 rounded-lg hover:bg-white/50 transition-colors"
+              aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+            >
+              {mobileMenuOpen ? (
+                <X className="w-6 h-6 text-midnight" />
+              ) : (
+                <Menu className="w-6 h-6 text-midnight" />
+              )}
+            </button>
           </div>
+          {mobileMenuOpen && (
+            <div className="md:hidden mt-2 bg-white/95 backdrop-blur-sm rounded-xl p-4 space-y-2">
+              <Link href="/auction" className="block px-4 py-3 rounded-lg text-midnight font-semibold hover:bg-pearl transition-colors" onClick={() => setMobileMenuOpen(false)}>
+                Browse Auction
+              </Link>
+              {session ? (
+                <>
+                  <Link href="/dashboard" className="block px-4 py-3 rounded-lg text-midnight font-semibold hover:bg-pearl transition-colors" onClick={() => setMobileMenuOpen(false)}>
+                    My Dashboard
+                  </Link>
+                  <Link href="/donate" className="block px-4 py-3 rounded-lg text-midnight font-semibold hover:bg-pearl transition-colors" onClick={() => setMobileMenuOpen(false)}>
+                    Donate Item
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link href="/login" className="block px-4 py-3 rounded-lg text-midnight font-semibold hover:bg-pearl transition-colors" onClick={() => setMobileMenuOpen(false)}>
+                    Log In
+                  </Link>
+                  <Link href="/register" className="block px-4 py-3 rounded-lg text-center btn-primary" onClick={() => setMobileMenuOpen(false)}>
+                    Sign Up
+                  </Link>
+                </>
+              )}
+            </div>
+          )}
         </div>
       </header>
 

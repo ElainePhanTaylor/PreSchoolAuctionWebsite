@@ -6,7 +6,7 @@ import { useSession } from "next-auth/react"
 import Image from "next/image"
 import { 
   Search, Clock, 
-  ChevronDown, Grid, List, TrendingUp, Loader2
+  ChevronDown, Grid, List, TrendingUp, Loader2, Menu, X as XIcon
 } from "lucide-react"
 
 const CATEGORIES = [
@@ -44,6 +44,7 @@ export default function AuctionPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("ALL")
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
+  const [mobileNavOpen, setMobileNavOpen] = useState(false)
 
   // Fetch items from API
   useEffect(() => {
@@ -152,7 +153,7 @@ export default function AuctionPage() {
               </button>
             </div>
 
-            {/* Auth Links */}
+            {/* Auth Links - Desktop */}
             <div className="hidden md:flex items-center gap-2">
               {session ? (
                 <Link href="/dashboard" className="btn-primary text-sm py-2 px-4">
@@ -169,7 +170,45 @@ export default function AuctionPage() {
                 </>
               )}
             </div>
+
+            {/* Mobile menu button */}
+            <button
+              onClick={() => setMobileNavOpen(!mobileNavOpen)}
+              className="md:hidden p-2 rounded-lg hover:bg-pearl transition-colors"
+              aria-label={mobileNavOpen ? "Close menu" : "Open menu"}
+            >
+              {mobileNavOpen ? (
+                <XIcon className="w-5 h-5 text-midnight" />
+              ) : (
+                <Menu className="w-5 h-5 text-midnight" />
+              )}
+            </button>
           </div>
+
+          {/* Mobile nav dropdown */}
+          {mobileNavOpen && (
+            <div className="md:hidden mt-2 bg-white rounded-xl border border-gray-100 shadow-lg p-3 space-y-1">
+              {session ? (
+                <>
+                  <Link href="/dashboard" className="block px-4 py-2.5 rounded-lg text-midnight font-medium hover:bg-pearl transition-colors text-sm" onClick={() => setMobileNavOpen(false)}>
+                    My Dashboard
+                  </Link>
+                  <Link href="/donate" className="block px-4 py-2.5 rounded-lg text-midnight font-medium hover:bg-pearl transition-colors text-sm" onClick={() => setMobileNavOpen(false)}>
+                    Donate Item
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link href="/login" className="block px-4 py-2.5 rounded-lg text-midnight font-medium hover:bg-pearl transition-colors text-sm" onClick={() => setMobileNavOpen(false)}>
+                    Log In
+                  </Link>
+                  <Link href="/register" className="block px-4 py-2.5 rounded-lg text-center btn-primary text-sm py-2" onClick={() => setMobileNavOpen(false)}>
+                    Sign Up
+                  </Link>
+                </>
+              )}
+            </div>
+          )}
 
           {/* Mobile Category Filter */}
           <div className="sm:hidden mt-2">

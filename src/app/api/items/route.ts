@@ -75,9 +75,19 @@ export async function GET(request: Request) {
     const search = searchParams.get("search")
     const status = searchParams.get("status") || "APPROVED"
 
+    // Non-APPROVED statuses require admin access
+    if (status !== "APPROVED") {
+      const session = await getServerSession(authOptions)
+      const user = session?.user as { isAdmin?: boolean } | undefined
+      if (!user?.isAdmin) {
+        return NextResponse.json({ error: "Admin access required" }, { status: 403 })
+      }
+    }
+
+    const validStatuses = ["PENDING", "APPROVED", "REJECTED", "SOLD", "UNSOLD"]
     const items = await prisma.item.findMany({
       where: {
-        status: status as any,
+        status: validStatuses.includes(status) ? status as any : "APPROVED",
         ...(category && category !== "ALL" && { category: category as any }),
         ...(search && {
           OR: [

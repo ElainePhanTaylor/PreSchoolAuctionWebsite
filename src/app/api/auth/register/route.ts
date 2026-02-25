@@ -5,10 +5,10 @@ import { isAdminEmail } from "@/lib/auth"
 
 export async function POST(request: NextRequest) {
   try {
-    const { firstName, lastName, email, username, phone, password } = await request.json()
+    const { firstName, lastName, email, username, phone, streetAddress, city, state, zipCode, password } = await request.json()
 
     // Validation
-    if (!firstName || !lastName || !email || !username || !phone || !password) {
+    if (!firstName || !lastName || !email || !username || !phone || !streetAddress || !city || !state || !zipCode || !password) {
       return NextResponse.json(
         { error: "All fields are required" },
         { status: 400 }
@@ -60,6 +60,10 @@ export async function POST(request: NextRequest) {
         email: email.toLowerCase(),
         username,
         phone,
+        streetAddress,
+        city,
+        state,
+        zipCode,
         passwordHash,
         isAdmin,
       },
