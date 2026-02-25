@@ -5,9 +5,9 @@ import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { 
-  Trees, Package, CreditCard, 
-  Settings, AlertCircle, Eye, Trash2,
-  Plus, Loader2, CheckCircle, Clock, DollarSign, Mail, Phone
+  Trees, Package, CreditCard, Users as UsersIcon,
+  Settings, AlertCircle, Eye, Trash2, Edit3, X as XIcon,
+  Plus, Loader2, CheckCircle, Clock, DollarSign, Mail, Phone, Save
 } from "lucide-react"
 
 interface AuctionItem {
@@ -43,6 +43,22 @@ interface PaymentItem {
   } | null
 }
 
+interface UserItem {
+  id: string
+  firstName: string
+  lastName: string
+  email: string
+  username: string
+  phone: string
+  streetAddress: string
+  city: string
+  state: string
+  zipCode: string
+  isAdmin: boolean
+  createdAt: string
+  _count: { bids: number; wonItems: number }
+}
+
 interface PaymentStats {
   totalSold: number
   totalPaid: number
@@ -51,7 +67,7 @@ interface PaymentStats {
   expectedRevenue: number
 }
 
-type Tab = "overview" | "items" | "payments" | "settings"
+type Tab = "overview" | "items" | "payments" | "users" | "settings"
 
 export default function AdminPage() {
   const { data: session, status } = useSession()
@@ -66,6 +82,12 @@ export default function AdminPage() {
   const [paymentStats, setPaymentStats] = useState<PaymentStats | null>(null)
   const [paymentsLoading, setPaymentsLoading] = useState(false)
   const [updatingPayment, setUpdatingPayment] = useState<string | null>(null)
+
+  // User management state
+  const [users, setUsers] = useState<UserItem[]>([])
+  const [usersLoading, setUsersLoading] = useState(false)
+  const [editingUser, setEditingUser] = useState<UserItem | null>(null)
+  const [editForm, setEditForm] = useState({ firstName: "", lastName: "", email: "", phone: "", streetAddress: "", city: "", state: "", zipCode: "" })
 
   // Fetch items
   useEffect(() => {
@@ -106,6 +128,70 @@ export default function AdminPage() {
     }
     fetchPayments()
   }, [activeTab])
+
+  // Fetch users when users tab is active
+  useEffect(() => {
+    if (activeTab !== "users") return
+
+    async function fetchUsers() {
+      setUsersLoading(true)
+      try {
+        const res = await fetch("/api/admin/users")
+        if (res.ok) {
+          setUsers(await res.json())
+        }
+      } catch (error) {
+        console.error("Failed to fetch users:", error)
+      } finally {
+        setUsersLoading(false)
+      }
+    }
+    fetchUsers()
+  }, [activeTab])
+
+  const startEditUser = (u: UserItem) => {
+    setEditingUser(u)
+    setEditForm({ firstName: u.firstName, lastName: u.lastName, email: u.email, phone: u.phone, streetAddress: u.streetAddress, city: u.city, state: u.state, zipCode: u.zipCode })
+  }
+
+  const handleSaveUser = async () => {
+    if (!editingUser) return
+    try {
+      const res = await fetch("/api/admin/users", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: editingUser.id, ...editForm }),
+      })
+      if (res.ok) {
+        setUsers(users.map(u => u.id === editingUser.id ? { ...u, ...editForm } : u))
+        setEditingUser(null)
+      } else {
+        const data = await res.json()
+        alert(data.error || "Failed to update user")
+      }
+    } catch {
+      alert("Failed to update user")
+    }
+  }
+
+  const handleDeleteUser = async (userId: string, email: string) => {
+    if (!confirm(`Delete user ${email}? This removes their bids, watchlist, and payment records.`)) return
+    try {
+      const res = await fetch("/api/admin/users", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId }),
+      })
+      if (res.ok) {
+        setUsers(users.filter(u => u.id !== userId))
+      } else {
+        const data = await res.json()
+        alert(data.error || "Failed to delete user")
+      }
+    } catch {
+      alert("Failed to delete user")
+    }
+  }
 
   // Mark check payment as received
   const handleMarkPayment = async (itemId: string, action: "mark_received" | "mark_pending") => {
@@ -225,6 +311,7 @@ export default function AdminPage() {
   const tabs = [
     { id: "items", label: "Items", icon: Package },
     { id: "payments", label: "Payments", icon: CreditCard },
+    { id: "users", label: "Users", icon: UsersIcon },
     { id: "settings", label: "Settings", icon: Settings },
   ]
 
@@ -550,6 +637,137 @@ export default function AdminPage() {
               </div>
             )}
 
+
+            {activeTab === "users" && (
+              <div className="space-y-6">
+                <h1 className="text-2xl font-bold text-text">User Management</h1>
+
+                <div className="card p-4">
+                  <p className="text-sm text-text-muted">{users.length} registered users</p>
+                </div>
+
+                {/* Edit Modal */}
+                {editingUser && (
+                  <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-2xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
+                      <div className="flex items-center justify-between mb-4">
+                        <h2 className="text-lg font-bold text-midnight">Edit User</h2>
+                        <button onClick={() => setEditingUser(null)} className="p-1 hover:bg-gray-100 rounded-lg">
+                          <XIcon className="w-5 h-5" />
+                        </button>
+                      </div>
+                      <div className="space-y-3">
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-xs font-medium text-gray-600 mb-1">First Name</label>
+                            <input className="input text-sm" value={editForm.firstName} onChange={e => setEditForm({...editForm, firstName: e.target.value})} />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-gray-600 mb-1">Last Name</label>
+                            <input className="input text-sm" value={editForm.lastName} onChange={e => setEditForm({...editForm, lastName: e.target.value})} />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Email</label>
+                          <input className="input text-sm" type="email" value={editForm.email} onChange={e => setEditForm({...editForm, email: e.target.value})} />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Phone</label>
+                          <input className="input text-sm" value={editForm.phone} onChange={e => setEditForm({...editForm, phone: e.target.value})} />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Street Address</label>
+                          <input className="input text-sm" value={editForm.streetAddress} onChange={e => setEditForm({...editForm, streetAddress: e.target.value})} />
+                        </div>
+                        <div className="grid grid-cols-3 gap-3">
+                          <div>
+                            <label className="block text-xs font-medium text-gray-600 mb-1">City</label>
+                            <input className="input text-sm" value={editForm.city} onChange={e => setEditForm({...editForm, city: e.target.value})} />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-gray-600 mb-1">State</label>
+                            <input className="input text-sm" value={editForm.state} onChange={e => setEditForm({...editForm, state: e.target.value})} />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-gray-600 mb-1">ZIP</label>
+                            <input className="input text-sm" value={editForm.zipCode} onChange={e => setEditForm({...editForm, zipCode: e.target.value})} />
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex gap-3 mt-6">
+                        <button onClick={handleSaveUser} className="flex-1 bg-violet text-white py-2 rounded-lg hover:bg-violet/90 flex items-center justify-center gap-2 font-medium">
+                          <Save className="w-4 h-4" /> Save
+                        </button>
+                        <button onClick={() => setEditingUser(null)} className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 font-medium">
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {usersLoading ? (
+                  <div className="card p-8 flex items-center justify-center">
+                    <Loader2 className="w-6 h-6 animate-spin text-violet" />
+                    <span className="ml-2 text-text-muted">Loading users...</span>
+                  </div>
+                ) : (
+                  <div className="card overflow-hidden">
+                    <table className="w-full">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="text-left p-4 text-sm font-medium text-text-muted">Name</th>
+                          <th className="text-left p-4 text-sm font-medium text-text-muted">Email</th>
+                          <th className="text-left p-4 text-sm font-medium text-text-muted">Phone</th>
+                          <th className="text-left p-4 text-sm font-medium text-text-muted">Bids</th>
+                          <th className="text-left p-4 text-sm font-medium text-text-muted">Won</th>
+                          <th className="text-left p-4 text-sm font-medium text-text-muted">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y">
+                        {users.map((u) => (
+                          <tr key={u.id} className="hover:bg-gray-50">
+                            <td className="p-4">
+                              <div>
+                                <p className="font-medium text-text">{u.firstName} {u.lastName}</p>
+                                <p className="text-xs text-text-muted">@{u.username}</p>
+                                {u.isAdmin && (
+                                  <span className="text-xs bg-violet/10 text-violet font-medium px-2 py-0.5 rounded-full">Admin</span>
+                                )}
+                              </div>
+                            </td>
+                            <td className="p-4">
+                              <a href={`mailto:${u.email}`} className="text-sm text-violet hover:underline">{u.email}</a>
+                            </td>
+                            <td className="p-4 text-sm text-text-muted">{u.phone}</td>
+                            <td className="p-4 text-sm text-text-muted">{u._count.bids}</td>
+                            <td className="p-4 text-sm text-text-muted">{u._count.wonItems}</td>
+                            <td className="p-4">
+                              <div className="flex gap-1">
+                                <button
+                                  onClick={() => startEditUser(u)}
+                                  className="p-2 text-text-muted hover:bg-gray-100 rounded-lg transition-colors"
+                                  title="Edit"
+                                >
+                                  <Edit3 className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteUser(u.id, u.email)}
+                                  className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                  title="Delete"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            )}
 
             {activeTab === "settings" && (
               <div className="space-y-6">

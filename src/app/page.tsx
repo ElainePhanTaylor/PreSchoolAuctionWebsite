@@ -49,6 +49,11 @@ export default function Home() {
                 </Link>
               </div>
             )}
+            {!session && (
+              <Link href="/login" className="md:hidden text-sm font-semibold text-midnight hover:text-violet transition-colors">
+                Log In
+              </Link>
+            )}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="md:hidden p-2 rounded-lg hover:bg-white/50 transition-colors"

@@ -6,6 +6,22 @@ import Link from "next/link"
 import Image from "next/image"
 import { Mail, Lock, User, Phone, AlertCircle, CheckCircle, ArrowLeft, MapPin } from "lucide-react"
 
+const US_STATES = [
+  "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA",
+  "HI","ID","IL","IN","IA","KS","KY","LA","ME","MD",
+  "MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ",
+  "NM","NY","NC","ND","OH","OK","OR","PA","RI","SC",
+  "SD","TN","TX","UT","VT","VA","WA","WV","WI","WY","DC",
+]
+
+function formatPhone(value: string): string {
+  const digits = value.replace(/\D/g, "").slice(0, 10)
+  if (digits.length === 0) return ""
+  if (digits.length <= 3) return `(${digits}`
+  if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`
+  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`
+}
+
 export default function RegisterPage() {
   const router = useRouter()
   const [formData, setFormData] = useState({
@@ -24,8 +40,12 @@ export default function RegisterPage() {
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
+  }
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, phone: formatPhone(e.target.value) })
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -198,7 +218,7 @@ export default function RegisterPage() {
                     name="phone"
                     type="tel"
                     value={formData.phone}
-                    onChange={handleChange}
+                    onChange={handlePhoneChange}
                     className="input !pl-12"
                     placeholder="(415) 555-0123"
                     required
@@ -245,17 +265,19 @@ export default function RegisterPage() {
                   <label htmlFor="state" className="block text-sm font-semibold text-midnight mb-2">
                     State
                   </label>
-                  <input
+                  <select
                     id="state"
                     name="state"
-                    type="text"
                     value={formData.state}
                     onChange={handleChange}
-                    className="input"
-                    placeholder="CA"
-                    maxLength={2}
+                    className="input !px-2 appearance-none"
                     required
-                  />
+                  >
+                    <option value="">--</option>
+                    {US_STATES.map((s) => (
+                      <option key={s} value={s}>{s}</option>
+                    ))}
+                  </select>
                 </div>
                 <div className="col-span-2">
                   <label htmlFor="zipCode" className="block text-sm font-semibold text-midnight mb-2">
@@ -292,6 +314,21 @@ export default function RegisterPage() {
                     minLength={8}
                   />
                 </div>
+                {formData.password && (
+                  <div className="mt-2 flex items-center gap-1 text-sm">
+                    {formData.password.length >= 8 ? (
+                      <>
+                        <CheckCircle className="w-4 h-4 text-teal" />
+                        <span className="text-teal font-medium">Good</span>
+                      </>
+                    ) : (
+                      <>
+                        <AlertCircle className="w-4 h-4 text-coral" />
+                        <span className="text-coral font-medium">Too short ({formData.password.length}/8)</span>
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div>
