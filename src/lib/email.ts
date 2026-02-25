@@ -80,6 +80,42 @@ export async function sendWinnerEmail(
   }
 }
 
+// Send password reset email
+export async function sendPasswordResetEmail(
+  toEmail: string,
+  resetToken: string
+) {
+  try {
+    const resetUrl = `${SITE_URL}/reset-password?token=${resetToken}`
+
+    await resend.emails.send({
+      from: FROM_EMAIL,
+      to: toEmail,
+      subject: "Reset your password — SACNS Auction",
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #1e293b;">Reset Your Password</h2>
+          <p>We received a request to reset your password for the SACNS Auction.</p>
+          <p>Click the button below to set a new password. This link expires in 1 hour.</p>
+          <a href="${resetUrl}" 
+             style="display: inline-block; background-color: #7c3aed; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; margin: 16px 0;">
+            Reset Password
+          </a>
+          <p style="color: #64748b; font-size: 14px;">
+            If you didn't request this, you can safely ignore this email.
+          </p>
+          <p style="color: #64748b; font-size: 14px; margin-top: 24px;">
+            San Anselmo Cooperative Nursery School Auction
+          </p>
+        </div>
+      `,
+    })
+    console.log(`Password reset email sent to ${toEmail}`)
+  } catch (error) {
+    console.error("Failed to send password reset email:", error)
+  }
+}
+
 // Send payment confirmation
 export async function sendPaymentConfirmationEmail(
   toEmail: string,
