@@ -7,7 +7,7 @@ import { Sparkles, Heart, Gavel, Users, ArrowRight, Clock, TrendingUp, Menu, X }
 import { useState } from "react";
 
 export default function Home() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
@@ -49,7 +49,7 @@ export default function Home() {
                 </Link>
               </div>
             )}
-            {!session && (
+            {status === "unauthenticated" && (
               <Link href="/login" className="md:hidden text-sm font-semibold text-midnight hover:text-violet transition-colors">
                 Log In
               </Link>
