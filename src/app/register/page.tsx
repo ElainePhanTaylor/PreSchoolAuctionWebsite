@@ -328,10 +328,14 @@ export default function RegisterPage() {
                 )}
               </div>
 
+              <p className="text-sm text-silver mt-4 leading-relaxed">
+                Your personal information (phone, email, and address) is kept private and will only be used by auction administrators for item pickup coordination and payment processing.
+              </p>
+
               <button
                 type="submit"
                 disabled={loading}
-                className="btn-coral w-full disabled:opacity-50 disabled:cursor-not-allowed mt-2"
+                className="btn-coral w-full disabled:opacity-50 disabled:cursor-not-allowed mt-4"
               >
                 {loading ? "Creating account..." : "Create Account"}
               </button>
