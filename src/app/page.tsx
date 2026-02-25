@@ -11,7 +11,7 @@ export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <div className="min-h-screen gradient-mesh">
+    <div className="min-h-screen gradient-mesh overflow-x-hidden">
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50">
         <div className="max-w-7xl mx-auto px-6 py-4">
@@ -140,7 +140,7 @@ export default function Home() {
             </div>
 
             {/* Right: Featured Cards with Redwood Background */}
-            <div className="relative">
+            <div className="relative hidden lg:block">
               {/* Redwood Background Image */}
               <div className="absolute inset-0 -inset-x-8 -inset-y-8 overflow-hidden rounded-3xl">
                 <div 
