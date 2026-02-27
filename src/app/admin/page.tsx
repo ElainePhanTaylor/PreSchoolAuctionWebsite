@@ -13,7 +13,10 @@ import {
 interface AuctionItem {
   id: string
   title: string
+  description?: string
   category: string
+  donorName?: string | null
+  estimatedValue?: number | null
   currentBid: number | null
   startingBid: number
   isFeatured: boolean
@@ -88,6 +91,10 @@ export default function AdminPage() {
   const [usersLoading, setUsersLoading] = useState(false)
   const [editingUser, setEditingUser] = useState<UserItem | null>(null)
   const [editForm, setEditForm] = useState({ firstName: "", lastName: "", email: "", phone: "", streetAddress: "", city: "", state: "", zipCode: "" })
+
+  // Item editing state
+  const [editingItem, setEditingItem] = useState<AuctionItem | null>(null)
+  const [itemEditForm, setItemEditForm] = useState({ title: "", description: "", category: "", donorName: "", estimatedValue: "", startingBid: "", isFeatured: false })
 
   // Fetch items
   useEffect(() => {
@@ -190,6 +197,57 @@ export default function AdminPage() {
       }
     } catch {
       alert("Failed to delete user")
+    }
+  }
+
+  // Item edit handlers
+  const startEditItem = (item: AuctionItem) => {
+    setEditingItem(item)
+    setItemEditForm({
+      title: item.title,
+      description: item.description || "",
+      category: item.category,
+      donorName: item.donorName || "",
+      estimatedValue: item.estimatedValue ? String(item.estimatedValue) : "",
+      startingBid: String(item.startingBid),
+      isFeatured: item.isFeatured,
+    })
+  }
+
+  const handleSaveItem = async () => {
+    if (!editingItem) return
+    try {
+      const res = await fetch(`/api/items/${editingItem.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: itemEditForm.title,
+          description: itemEditForm.description,
+          category: itemEditForm.category,
+          donorName: itemEditForm.donorName || null,
+          estimatedValue: itemEditForm.estimatedValue ? parseFloat(itemEditForm.estimatedValue) : null,
+          startingBid: parseFloat(itemEditForm.startingBid),
+          isFeatured: itemEditForm.isFeatured,
+        }),
+      })
+      if (res.ok) {
+        setItems(items.map(i => i.id === editingItem.id ? {
+          ...i,
+          title: itemEditForm.title,
+          description: itemEditForm.description,
+          category: itemEditForm.category,
+          donorName: itemEditForm.donorName || null,
+          estimatedValue: itemEditForm.estimatedValue ? parseFloat(itemEditForm.estimatedValue) : null,
+          startingBid: parseFloat(itemEditForm.startingBid),
+          isFeatured: itemEditForm.isFeatured,
+        } : i))
+        setEditingItem(null)
+      } else {
+        const data = await res.json()
+        alert(data.error || "Failed to update item")
+      }
+    } catch {
+      alert("Failed to update item")
     }
   }
 
@@ -408,6 +466,73 @@ export default function AdminPage() {
                   </div>
                 </div>
 
+                {/* Item Edit Modal */}
+                {editingItem && (
+                  <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-2xl p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto">
+                      <div className="flex items-center justify-between mb-4">
+                        <h2 className="text-lg font-bold text-midnight">Edit Item</h2>
+                        <button onClick={() => setEditingItem(null)} className="p-1 hover:bg-gray-100 rounded-lg">
+                          <XIcon className="w-5 h-5" />
+                        </button>
+                      </div>
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Title</label>
+                          <input className="input text-sm" value={itemEditForm.title} onChange={e => setItemEditForm({...itemEditForm, title: e.target.value})} />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Description</label>
+                          <textarea className="input text-sm resize-none" rows={4} value={itemEditForm.description} onChange={e => setItemEditForm({...itemEditForm, description: e.target.value})} />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Donated By</label>
+                          <input className="input text-sm" value={itemEditForm.donorName} onChange={e => setItemEditForm({...itemEditForm, donorName: e.target.value})} placeholder="e.g., The Smith Family" />
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-xs font-medium text-gray-600 mb-1">Category</label>
+                            <select className="input text-sm" value={itemEditForm.category} onChange={e => setItemEditForm({...itemEditForm, category: e.target.value})}>
+                              <option value="EXPERIENCES">Experiences</option>
+                              <option value="GIFT_CARDS">Gift Cards</option>
+                              <option value="HOME_HOUSEHOLD">Home & Household</option>
+                              <option value="SERVICES">Services</option>
+                              <option value="HANDMADE">Handmade</option>
+                              <option value="ART">Art</option>
+                              <option value="FOOD_DINING">Food & Dining</option>
+                              <option value="SPORTS">Sports</option>
+                              <option value="KIDS">Kids</option>
+                              <option value="OTHER">Other</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-gray-600 mb-1">Estimated Value ($)</label>
+                            <input className="input text-sm" type="text" inputMode="decimal" value={itemEditForm.estimatedValue} onChange={e => setItemEditForm({...itemEditForm, estimatedValue: e.target.value.replace(/[^0-9.]/g, "")})} />
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-xs font-medium text-gray-600 mb-1">Starting Bid ($)</label>
+                            <input className="input text-sm" type="text" inputMode="decimal" value={itemEditForm.startingBid} onChange={e => setItemEditForm({...itemEditForm, startingBid: e.target.value.replace(/[^0-9.]/g, "")})} />
+                          </div>
+                          <div className="flex items-center gap-2 pt-5">
+                            <input type="checkbox" id="editFeatured" checked={itemEditForm.isFeatured} onChange={e => setItemEditForm({...itemEditForm, isFeatured: e.target.checked})} className="w-4 h-4 rounded border-gray-300 text-violet focus:ring-violet" />
+                            <label htmlFor="editFeatured" className="text-sm font-medium text-gray-700">Featured</label>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex gap-3 mt-6">
+                        <button onClick={handleSaveItem} className="flex-1 bg-violet text-white py-2 rounded-lg hover:bg-violet/90 flex items-center justify-center gap-2 font-medium">
+                          <Save className="w-4 h-4" /> Save
+                        </button>
+                        <button onClick={() => setEditingItem(null)} className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 font-medium">
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Items Table */}
                 {loading ? (
                   <div className="card p-8 flex items-center justify-center">
@@ -459,6 +584,13 @@ export default function AdminPage() {
                             <td className="p-4 text-text-muted">{item._count.bids}</td>
                             <td className="p-4">
                               <div className="flex gap-1">
+                                <button
+                                  onClick={() => startEditItem(item)}
+                                  className="p-2 text-text-muted hover:bg-gray-100 rounded-lg transition-colors"
+                                  title="Edit"
+                                >
+                                  <Edit3 className="w-4 h-4" />
+                                </button>
                                 <Link 
                                   href={`/auction/${item.id}`}
                                   className="p-2 text-text-muted hover:bg-gray-100 rounded-lg transition-colors"

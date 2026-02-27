@@ -64,7 +64,7 @@ export async function PATCH(
     // Whitelist allowed fields
     const allowedFields = [
       "title", "description", "category", "estimatedValue",
-      "startingBid", "isFeatured", "status"
+      "startingBid", "isFeatured", "status", "donorName"
     ]
     
     const data: Record<string, unknown> = {}
