@@ -1,13 +1,13 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { 
   Trees, Package, CreditCard, Users as UsersIcon,
   Settings, AlertCircle, Eye, Trash2, Edit3, X as XIcon,
-  Plus, Loader2, CheckCircle, Clock, DollarSign, Mail, Phone, Save
+  Plus, Loader2, CheckCircle, Clock, DollarSign, Mail, Phone, Save, Upload
 } from "lucide-react"
 
 interface AuctionItem {
@@ -95,6 +95,11 @@ export default function AdminPage() {
   // Item editing state
   const [editingItem, setEditingItem] = useState<AuctionItem | null>(null)
   const [itemEditForm, setItemEditForm] = useState({ title: "", description: "", category: "", donorName: "", estimatedValue: "", startingBid: "", isFeatured: false })
+  const [editPhotos, setEditPhotos] = useState<{ url: string }[]>([])
+  const [newPhotoFiles, setNewPhotoFiles] = useState<File[]>([])
+  const [newPhotoPreviews, setNewPhotoPreviews] = useState<string[]>([])
+  const [savingItem, setSavingItem] = useState(false)
+  const editFileInputRef = useRef<HTMLInputElement>(null)
 
   // Fetch items
   useEffect(() => {
@@ -203,6 +208,9 @@ export default function AdminPage() {
   // Item edit handlers
   const startEditItem = (item: AuctionItem) => {
     setEditingItem(item)
+    setEditPhotos([...item.photos])
+    setNewPhotoFiles([])
+    setNewPhotoPreviews([])
     setItemEditForm({
       title: item.title,
       description: item.description || "",
@@ -214,9 +222,61 @@ export default function AdminPage() {
     })
   }
 
+  const handleEditPhotoAdd = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || [])
+    const total = editPhotos.length + newPhotoFiles.length + files.length
+    if (total > 5) { alert("Maximum 5 photos allowed"); return }
+    setNewPhotoFiles([...newPhotoFiles, ...files])
+    setNewPhotoPreviews([...newPhotoPreviews, ...files.map(f => URL.createObjectURL(f))])
+  }
+
+  const compressToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const img = document.createElement("img")
+      const canvas = document.createElement("canvas")
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        img.onload = () => {
+          let { width, height } = img
+          const max = 800
+          if (width > max || height > max) {
+            if (width > height) { height = (height / width) * max; width = max }
+            else { width = (width / height) * max; height = max }
+          }
+          canvas.width = width; canvas.height = height
+          canvas.getContext("2d")?.drawImage(img, 0, 0, width, height)
+          resolve(canvas.toDataURL("image/jpeg", 0.7))
+        }
+        img.onerror = reject
+        img.src = e.target?.result as string
+      }
+      reader.onerror = reject
+      reader.readAsDataURL(file)
+    })
+  }
+
   const handleSaveItem = async () => {
     if (!editingItem) return
+    setSavingItem(true)
     try {
+      // Upload new photos if any
+      let newPhotoUrls: string[] = []
+      if (newPhotoFiles.length > 0) {
+        const base64Images = await Promise.all(newPhotoFiles.map(compressToBase64))
+        const uploadRes = await fetch("/api/upload", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ images: base64Images }),
+        })
+        if (!uploadRes.ok) throw new Error("Failed to upload photos")
+        const { urls } = await uploadRes.json()
+        newPhotoUrls = urls
+      }
+
+      // Delete removed photos and add new ones
+      const keptUrls = editPhotos.map(p => p.url)
+      const removedUrls = editingItem.photos.map(p => p.url).filter(u => !keptUrls.includes(u))
+
       const res = await fetch(`/api/items/${editingItem.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -228,26 +288,23 @@ export default function AdminPage() {
           estimatedValue: itemEditForm.estimatedValue ? parseFloat(itemEditForm.estimatedValue) : null,
           startingBid: parseFloat(itemEditForm.startingBid),
           isFeatured: itemEditForm.isFeatured,
+          removePhotoUrls: removedUrls,
+          addPhotoUrls: newPhotoUrls,
         }),
       })
       if (res.ok) {
-        setItems(items.map(i => i.id === editingItem.id ? {
-          ...i,
-          title: itemEditForm.title,
-          description: itemEditForm.description,
-          category: itemEditForm.category,
-          donorName: itemEditForm.donorName || null,
-          estimatedValue: itemEditForm.estimatedValue ? parseFloat(itemEditForm.estimatedValue) : null,
-          startingBid: parseFloat(itemEditForm.startingBid),
-          isFeatured: itemEditForm.isFeatured,
-        } : i))
+        const updated = await res.json()
+        setItems(items.map(i => i.id === editingItem.id ? { ...i, ...updated } : i))
         setEditingItem(null)
+        newPhotoPreviews.forEach(u => URL.revokeObjectURL(u))
       } else {
         const data = await res.json()
         alert(data.error || "Failed to update item")
       }
-    } catch {
-      alert("Failed to update item")
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to update item")
+    } finally {
+      setSavingItem(false)
     }
   }
 
@@ -477,6 +534,52 @@ export default function AdminPage() {
                         </button>
                       </div>
                       <div className="space-y-3">
+                        {/* Photos */}
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Photos</label>
+                          <div className="flex gap-2 flex-wrap">
+                            {editPhotos.map((photo, i) => (
+                              <div key={photo.url} className="relative w-20 h-20 rounded-lg overflow-hidden group">
+                                <img src={photo.url} alt="" className="w-full h-full object-cover" />
+                                <button
+                                  type="button"
+                                  onClick={() => setEditPhotos(editPhotos.filter((_, idx) => idx !== i))}
+                                  className="absolute top-1 right-1 p-0.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                >
+                                  <XIcon className="w-3 h-3" />
+                                </button>
+                              </div>
+                            ))}
+                            {newPhotoPreviews.map((url, i) => (
+                              <div key={url} className="relative w-20 h-20 rounded-lg overflow-hidden group border-2 border-green-400">
+                                <img src={url} alt="" className="w-full h-full object-cover" />
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    URL.revokeObjectURL(url)
+                                    setNewPhotoFiles(newPhotoFiles.filter((_, idx) => idx !== i))
+                                    setNewPhotoPreviews(newPhotoPreviews.filter((_, idx) => idx !== i))
+                                  }}
+                                  className="absolute top-1 right-1 p-0.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                >
+                                  <XIcon className="w-3 h-3" />
+                                </button>
+                              </div>
+                            ))}
+                            {editPhotos.length + newPhotoFiles.length < 5 && (
+                              <button
+                                type="button"
+                                onClick={() => editFileInputRef.current?.click()}
+                                className="w-20 h-20 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center text-gray-400 hover:border-violet hover:text-violet transition-colors"
+                              >
+                                <Upload className="w-5 h-5" />
+                                <span className="text-xs mt-1">Add</span>
+                              </button>
+                            )}
+                          </div>
+                          <input ref={editFileInputRef} type="file" accept="image/*" multiple onChange={handleEditPhotoAdd} className="hidden" />
+                        </div>
+
                         <div>
                           <label className="block text-xs font-medium text-gray-600 mb-1">Title</label>
                           <input className="input text-sm" value={itemEditForm.title} onChange={e => setItemEditForm({...itemEditForm, title: e.target.value})} />
@@ -522,10 +625,10 @@ export default function AdminPage() {
                         </div>
                       </div>
                       <div className="flex gap-3 mt-6">
-                        <button onClick={handleSaveItem} className="flex-1 bg-violet text-white py-2 rounded-lg hover:bg-violet/90 flex items-center justify-center gap-2 font-medium">
-                          <Save className="w-4 h-4" /> Save
+                        <button onClick={handleSaveItem} disabled={savingItem} className="flex-1 bg-violet text-white py-2 rounded-lg hover:bg-violet/90 flex items-center justify-center gap-2 font-medium disabled:opacity-50">
+                          {savingItem ? <><Loader2 className="w-4 h-4 animate-spin" /> Saving...</> : <><Save className="w-4 h-4" /> Save</>}
                         </button>
-                        <button onClick={() => setEditingItem(null)} className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 font-medium">
+                        <button onClick={() => setEditingItem(null)} disabled={savingItem} className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 font-medium disabled:opacity-50">
                           Cancel
                         </button>
                       </div>

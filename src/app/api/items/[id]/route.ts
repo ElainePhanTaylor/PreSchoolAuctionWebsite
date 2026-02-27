@@ -60,6 +60,7 @@ export async function PATCH(
 
     const { id } = await params
     const updates = await request.json()
+    const { removePhotoUrls, addPhotoUrls, ...rest } = updates
 
     // Whitelist allowed fields
     const allowedFields = [
@@ -69,9 +70,28 @@ export async function PATCH(
     
     const data: Record<string, unknown> = {}
     for (const field of allowedFields) {
-      if (updates[field] !== undefined) {
-        data[field] = updates[field]
+      if (rest[field] !== undefined) {
+        data[field] = rest[field]
       }
+    }
+
+    // Handle photo removals
+    if (removePhotoUrls && Array.isArray(removePhotoUrls) && removePhotoUrls.length > 0) {
+      await prisma.photo.deleteMany({
+        where: { itemId: id, url: { in: removePhotoUrls } },
+      })
+    }
+
+    // Handle photo additions
+    if (addPhotoUrls && Array.isArray(addPhotoUrls) && addPhotoUrls.length > 0) {
+      const existingPhotos = await prisma.photo.count({ where: { itemId: id } })
+      await prisma.photo.createMany({
+        data: addPhotoUrls.map((url: string, i: number) => ({
+          itemId: id,
+          url,
+          order: existingPhotos + i,
+        })),
+      })
     }
 
     const item = await prisma.item.update({
@@ -79,6 +99,7 @@ export async function PATCH(
       data,
       include: {
         photos: { orderBy: { order: "asc" } },
+        _count: { select: { bids: true } },
       },
     })
 
