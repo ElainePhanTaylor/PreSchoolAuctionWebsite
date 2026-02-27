@@ -30,7 +30,7 @@ interface AuctionItem {
   status: string
   winnerId: string | null
   photos: { url: string }[]
-  donor: { username: string }
+  donorName: string | null
   _count: { bids: number }
   payment?: { status: string; method: string } | null
 }
@@ -344,10 +344,12 @@ export default function ItemDetailPage() {
               </div>
               
               <div className="border-t mt-6 pt-6">
-                <div className="flex items-center gap-2 text-slate">
-                  <User className="w-4 h-4" />
-                  <span>Donated by: <strong className="text-midnight">{item.donor?.username || "Anonymous"}</strong></span>
-                </div>
+                {item.donorName && (
+                  <div className="flex items-center gap-2 text-slate">
+                    <User className="w-4 h-4" />
+                    <span>Donated by: <strong className="text-midnight">{item.donorName}</strong></span>
+                  </div>
+                )}
                 {item.estimatedValue && (
                   <p className="text-sm text-silver mt-1">
                     Estimated value: ${item.estimatedValue}
