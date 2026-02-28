@@ -377,7 +377,8 @@ export default function Home() {
             </div>
           </div>
           <div className="border-t border-slate-light/20 mt-8 pt-8 text-center text-slate-light text-sm">
-            © {new Date().getFullYear()} San Anselmo Cooperative Nursery School. All rights reserved.
+            <p>© {new Date().getFullYear()} San Anselmo Cooperative Nursery School. All rights reserved.</p>
+            <p className="mt-2 text-slate-light/60">Built by Andreas Taylor</p>
           </div>
         </div>
       </footer>
