@@ -29,15 +29,6 @@ export async function POST() {
       },
     })
 
-    console.log("=== END AUCTION DEBUG ===")
-    console.log("Found items with APPROVED status:", items.length)
-    items.forEach(item => {
-      console.log(`- ${item.title}: ${item.bids.length} bids`)
-      if (item.bids[0]) {
-        console.log(`  Winner email: ${item.bids[0].user.email}`)
-      }
-    })
-
     const results = {
       itemsWithWinners: 0,
       itemsWithoutBids: 0,
@@ -48,8 +39,6 @@ export async function POST() {
       const highestBid = item.bids[0]
 
       if (highestBid) {
-        console.log(`Processing winner for ${item.title}: ${highestBid.user.email}`)
-        
         // Set winner and mark as sold (pending payment)
         await prisma.item.update({
           where: { id: item.id },
@@ -59,15 +48,12 @@ export async function POST() {
           },
         })
 
-        // Send winner email (await to ensure it sends before response)
-        console.log(`Sending winner email to ${highestBid.user.email}...`)
         await sendWinnerEmail(
           highestBid.user.email,
           item.title,
           highestBid.amount,
           item.id
         )
-        console.log(`Email sent for ${item.title}`)
 
         results.itemsWithWinners++
         results.emailsSent++

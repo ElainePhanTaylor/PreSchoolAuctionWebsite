@@ -1,14 +1,19 @@
 import { Resend } from "resend"
 
-// Use a placeholder if no API key (prevents build errors)
 const resend = new Resend(process.env.RESEND_API_KEY || "re_placeholder")
 
-// Use Resend's test email until domain is verified
-// Change to "SACNS Auction <auction@sacns.org>" after verifying domain
-const FROM_EMAIL = "SACNS Auction <onboarding@resend.dev>"
+const FROM_EMAIL = process.env.EMAIL_FROM || "SACNS Auction <onboarding@resend.dev>"
 const SITE_URL = process.env.NEXTAUTH_URL || "http://localhost:3000"
 
-// Send outbid notification
+function ensureEmailConfigured() {
+  if (!process.env.RESEND_API_KEY) {
+    throw new Error("RESEND_API_KEY is not configured. Email cannot be sent.")
+  }
+  if (!process.env.NEXTAUTH_URL) {
+    throw new Error("NEXTAUTH_URL is not configured. Email links will be broken.")
+  }
+}
+
 export async function sendOutbidEmail(
   toEmail: string,
   itemTitle: string,
@@ -16,6 +21,7 @@ export async function sendOutbidEmail(
   itemId: string
 ) {
   try {
+    ensureEmailConfigured()
     await resend.emails.send({
       from: FROM_EMAIL,
       to: toEmail,
@@ -36,13 +42,11 @@ export async function sendOutbidEmail(
         </div>
       `,
     })
-    console.log(`Outbid email sent to ${toEmail}`)
   } catch (error) {
     console.error("Failed to send outbid email:", error)
   }
 }
 
-// Send winner notification
 export async function sendWinnerEmail(
   toEmail: string,
   itemTitle: string,
@@ -50,8 +54,8 @@ export async function sendWinnerEmail(
   itemId: string
 ) {
   try {
-    console.log(`Attempting to send winner email to: ${toEmail}`)
-    const result = await resend.emails.send({
+    ensureEmailConfigured()
+    await resend.emails.send({
       from: FROM_EMAIL,
       to: toEmail,
       subject: `Congratulations! You won "${itemTitle}"`,
@@ -74,18 +78,17 @@ export async function sendWinnerEmail(
         </div>
       `,
     })
-    console.log(`Winner email result for ${toEmail}:`, JSON.stringify(result))
   } catch (error) {
-    console.error(`Failed to send winner email to ${toEmail}:`, error)
+    console.error("Failed to send winner email:", error)
   }
 }
 
-// Send password reset email
 export async function sendPasswordResetEmail(
   toEmail: string,
   resetToken: string
 ) {
   try {
+    ensureEmailConfigured()
     const resetUrl = `${SITE_URL}/reset-password?token=${resetToken}`
 
     await resend.emails.send({
@@ -110,13 +113,11 @@ export async function sendPasswordResetEmail(
         </div>
       `,
     })
-    console.log(`Password reset email sent to ${toEmail}`)
   } catch (error) {
     console.error("Failed to send password reset email:", error)
   }
 }
 
-// Send payment confirmation
 export async function sendPaymentConfirmationEmail(
   toEmail: string,
   itemTitle: string,
@@ -124,6 +125,7 @@ export async function sendPaymentConfirmationEmail(
   paymentMethod: "STRIPE" | "CHECK"
 ) {
   try {
+    ensureEmailConfigured()
     const isStripe = paymentMethod === "STRIPE"
     
     const subject = isStripe 
@@ -162,7 +164,6 @@ export async function sendPaymentConfirmationEmail(
         </div>
       `,
     })
-    console.log(`Payment confirmation email sent to ${toEmail}`)
   } catch (error) {
     console.error("Failed to send payment confirmation email:", error)
   }

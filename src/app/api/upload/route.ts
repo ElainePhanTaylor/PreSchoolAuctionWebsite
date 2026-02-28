@@ -27,10 +27,7 @@ export async function POST(request: Request) {
       )
     }
 
-    // Upload to Cloudinary
-    console.log("Uploading", images.length, "images to Cloudinary...")
     const urls = await uploadImages(images)
-    console.log("Upload successful:", urls)
 
     return NextResponse.json({ urls })
   } catch (error) {
