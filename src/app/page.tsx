@@ -129,11 +129,6 @@ export default function Home() {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left Content */}
             <div>
-              <div className="badge badge-violet mb-6">
-                <Sparkles className="w-3 h-3" />
-                Fundraising Made Fun
-              </div>
-              
               <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold text-midnight leading-[1.1] mb-6">
                 Bid for a
                 <span className="block bg-gradient-to-r from-violet via-coral to-teal bg-clip-text text-transparent">
