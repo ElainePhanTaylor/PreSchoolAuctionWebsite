@@ -3,7 +3,7 @@
 import Link from "next/link"
 import Image from "next/image"
 import { useSession, signOut } from "next-auth/react"
-import { User, LogOut, ChevronDown, Menu, X } from "lucide-react"
+import { User, LogOut, ChevronDown, Menu, X, Mail } from "lucide-react"
 import { useState, useRef, useEffect } from "react"
 
 export default function Header() {
@@ -52,6 +52,9 @@ export default function Header() {
           <Link href="/auction" className="text-slate hover:text-violet font-medium transition-colors">
             Browse Auction
           </Link>
+          <a href="mailto:elainph@gmail.com" className="text-slate hover:text-violet font-medium transition-colors">
+            Contact
+          </a>
           {session && (
             <Link href="/dashboard" className="text-slate hover:text-violet font-medium transition-colors">
               My Dashboard
@@ -149,6 +152,14 @@ export default function Header() {
               >
                 Browse Auction
               </Link>
+              <a
+                href="mailto:elainph@gmail.com"
+                className="flex items-center gap-3 px-4 py-3 rounded-xl text-midnight font-medium hover:bg-pearl transition-colors"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <Mail className="w-5 h-5" />
+                Contact Us
+              </a>
               {session && (
                 <Link
                   href="/dashboard"

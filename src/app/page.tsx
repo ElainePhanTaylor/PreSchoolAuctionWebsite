@@ -374,6 +374,9 @@ export default function Home() {
               <p className="font-medium text-white mb-1">San Anselmo Cooperative Nursery School</p>
               <p>24 Myrtle Lane, San Anselmo, CA 94960</p>
               <p>(415) 454-5308</p>
+              <a href="mailto:elainph@gmail.com" className="text-coral hover:text-white transition-colors mt-1 inline-block">
+                Questions? Contact Us
+              </a>
             </div>
           </div>
           <div className="border-t border-slate-light/20 mt-8 pt-8 text-center text-slate-light text-sm">

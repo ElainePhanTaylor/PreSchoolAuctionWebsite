@@ -3,6 +3,7 @@ import { Resend } from "resend"
 const resend = new Resend(process.env.RESEND_API_KEY || "re_placeholder")
 
 const FROM_EMAIL = process.env.EMAIL_FROM || "SACNS Auction <onboarding@resend.dev>"
+const REPLY_TO = process.env.EMAIL_REPLY_TO || "elainph@gmail.com"
 const SITE_URL = process.env.NEXTAUTH_URL || "http://localhost:3000"
 
 function ensureEmailConfigured() {
@@ -24,6 +25,7 @@ export async function sendOutbidEmail(
     ensureEmailConfigured()
     await resend.emails.send({
       from: FROM_EMAIL,
+      replyTo: REPLY_TO,
       to: toEmail,
       subject: `You've been outbid on "${itemTitle}"`,
       html: `
@@ -37,7 +39,8 @@ export async function sendOutbidEmail(
             Bid Now
           </a>
           <p style="color: #64748b; font-size: 14px; margin-top: 24px;">
-            San Anselmo Cooperative Nursery School Auction
+            San Anselmo Cooperative Nursery School Auction<br/>
+            Questions? Reply to this email or contact us at <a href="mailto:${REPLY_TO}" style="color: #7c3aed;">${REPLY_TO}</a>
           </p>
         </div>
       `,
@@ -57,6 +60,7 @@ export async function sendWinnerEmail(
     ensureEmailConfigured()
     await resend.emails.send({
       from: FROM_EMAIL,
+      replyTo: REPLY_TO,
       to: toEmail,
       subject: `Congratulations! You won "${itemTitle}"`,
       html: `
@@ -73,7 +77,8 @@ export async function sendWinnerEmail(
             You can pay by credit card or check. Payment instructions are available on the item page.
           </p>
           <p style="color: #64748b; font-size: 14px; margin-top: 24px;">
-            Thank you for supporting San Anselmo Cooperative Nursery School!
+            Thank you for supporting San Anselmo Cooperative Nursery School!<br/>
+            Questions? Reply to this email or contact us at <a href="mailto:${REPLY_TO}" style="color: #7c3aed;">${REPLY_TO}</a>
           </p>
         </div>
       `,
@@ -93,6 +98,7 @@ export async function sendPasswordResetEmail(
 
     await resend.emails.send({
       from: FROM_EMAIL,
+      replyTo: REPLY_TO,
       to: toEmail,
       subject: "Reset your password — SACNS Auction",
       html: `
@@ -108,7 +114,8 @@ export async function sendPasswordResetEmail(
             If you didn't request this, you can safely ignore this email.
           </p>
           <p style="color: #64748b; font-size: 14px; margin-top: 24px;">
-            San Anselmo Cooperative Nursery School Auction
+            San Anselmo Cooperative Nursery School Auction<br/>
+            Questions? Contact us at <a href="mailto:${REPLY_TO}" style="color: #7c3aed;">${REPLY_TO}</a>
           </p>
         </div>
       `,
@@ -152,6 +159,7 @@ export async function sendPaymentConfirmationEmail(
 
     await resend.emails.send({
       from: FROM_EMAIL,
+      replyTo: REPLY_TO,
       to: toEmail,
       subject,
       html: `
@@ -159,7 +167,8 @@ export async function sendPaymentConfirmationEmail(
           <h2 style="color: ${headingColor};">${heading}</h2>
           ${bodyContent}
           <p style="color: #64748b; font-size: 14px; margin-top: 24px;">
-            Thank you for supporting San Anselmo Cooperative Nursery School!
+            Thank you for supporting San Anselmo Cooperative Nursery School!<br/>
+            Questions? Reply to this email or contact us at <a href="mailto:${REPLY_TO}" style="color: #7c3aed;">${REPLY_TO}</a>
           </p>
         </div>
       `,
