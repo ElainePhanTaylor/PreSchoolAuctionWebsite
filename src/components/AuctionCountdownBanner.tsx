@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { CalendarClock, Clock } from "lucide-react"
+import { Clock } from "lucide-react"
 
 export function AuctionCountdownBanner() {
   const [auctionEndTime, setAuctionEndTime] = useState<Date | null>(null)
@@ -38,24 +38,46 @@ export function AuctionCountdownBanner() {
 
   if (!auctionEndTime) return null
 
+  if (auctionEnded) {
+    return (
+      <div className="bg-red-600 text-white py-3 px-4 text-center sticky top-0 z-[60]">
+        <div className="flex items-center justify-center gap-2 text-lg font-bold">
+          <Clock className="w-5 h-5" />
+          Auction Has Ended
+        </div>
+      </div>
+    )
+  }
+
+  if (!countdown) return null
+
   return (
-    <div className={`py-2 px-4 text-center text-sm font-semibold flex items-center justify-center gap-2 sticky top-0 z-[60] ${auctionEnded ? "bg-red-50 text-red-700" : "bg-violet/10 text-violet"}`}>
-      {auctionEnded ? (
-        <><Clock className="w-4 h-4" /> Auction Has Ended</>
-      ) : countdown && (
-        <>
-          <CalendarClock className="w-4 h-4 hidden sm:block" />
-          <span className="hidden sm:inline">
-            Auction ends {auctionEndTime.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
-          </span>
-          <span className="sm:hidden">
-            Ends {auctionEndTime.toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-          </span>
-          <span className="bg-white/80 rounded-lg px-2.5 py-0.5 tabular-nums font-bold text-midnight">
-            {countdown.days}d {String(countdown.hours).padStart(2, "0")}h {String(countdown.minutes).padStart(2, "0")}m {String(countdown.seconds).padStart(2, "0")}s
-          </span>
-        </>
-      )}
+    <div className="bg-gradient-to-r from-violet to-indigo-600 text-white py-3 px-4 text-center sticky top-0 z-[60] shadow-md">
+      <div className="max-w-4xl mx-auto">
+        <p className="text-xs sm:text-sm font-medium opacity-90 mb-1">
+          Auction ends {auctionEndTime.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })} at {auctionEndTime.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}
+        </p>
+        <div className="flex items-center justify-center gap-2 sm:gap-3">
+          {[
+            { value: countdown.days, label: "DAYS" },
+            { value: countdown.hours, label: "HRS" },
+            { value: countdown.minutes, label: "MIN" },
+            { value: countdown.seconds, label: "SEC" },
+          ].map((unit, i) => (
+            <div key={unit.label} className="flex items-center gap-2 sm:gap-3">
+              <div className="text-center">
+                <div className="bg-white/20 backdrop-blur-sm rounded-lg w-12 sm:w-14 h-10 sm:h-12 flex items-center justify-center">
+                  <span className="text-xl sm:text-2xl font-extrabold tabular-nums">
+                    {String(unit.value).padStart(2, "0")}
+                  </span>
+                </div>
+                <p className="text-[10px] sm:text-xs font-semibold mt-0.5 opacity-80">{unit.label}</p>
+              </div>
+              {i < 3 && <span className="text-xl font-bold opacity-60 -mt-4">:</span>}
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   )
 }
