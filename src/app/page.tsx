@@ -22,7 +22,6 @@ export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [featuredItems, setFeaturedItems] = useState<AuctionItem[]>([]);
   const [trendingItems, setTrendingItems] = useState<AuctionItem[]>([]);
-
   useEffect(() => {
     async function fetchItems() {
       try {
