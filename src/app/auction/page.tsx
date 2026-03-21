@@ -73,23 +73,6 @@ export default function AuctionPage() {
 
   return (
     <div className="min-h-screen bg-pearl">
-      {/* Hero Banner with Forest Background */}
-      <div className="relative h-32 md:h-40 overflow-hidden">
-        <Image 
-          src="/images/forestbanner.png" 
-          alt="Forest background" 
-          fill
-          className="object-cover"
-          priority
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-midnight/70 to-midnight/50" />
-        <div className="absolute inset-0 flex items-center justify-center">
-          <h1 className="text-3xl md:text-4xl font-extrabold text-white drop-shadow-lg">
-            Browse Auction Items
-          </h1>
-        </div>
-      </div>
-
       {/* Search Bar - Sticky at Top */}
       <div className="bg-white/95 backdrop-blur-md border-b border-slate-light/10 sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-3">
