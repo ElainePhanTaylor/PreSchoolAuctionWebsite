@@ -74,7 +74,7 @@ export async function sendWinnerEmail(
             Pay Now
           </a>
           <p style="color: #64748b; font-size: 14px;">
-            You can pay by credit card or check. Payment instructions are available on the item page.
+            Credit card checkout is temporarily unavailable. Please pay by <strong>Venmo</strong> or <strong>check</strong> — open the link above for full instructions on the item page.
           </p>
           <p style="color: #64748b; font-size: 14px; margin-top: 24px;">
             Thank you for supporting San Anselmo Cooperative Nursery School!<br/>

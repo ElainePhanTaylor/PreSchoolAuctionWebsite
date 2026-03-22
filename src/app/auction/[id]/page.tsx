@@ -3,12 +3,17 @@
 import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import Link from "next/link"
+import {
+  CARD_UNAVAILABLE_NOTICE,
+  getVenmoDisplay,
+  PAYMENT_CONTACT_EMAIL,
+} from "@/lib/payment-options"
 import { useParams, useRouter } from "next/navigation"
 import Image from "next/image"
 import { 
   ArrowLeft, Clock, User, 
   Gavel, AlertCircle, CheckCircle, Loader2,
-  CreditCard, FileText
+  FileText, Smartphone
 } from "lucide-react"
 
 interface Bid {
@@ -146,28 +151,6 @@ export default function ItemDetailPage() {
     } catch (err) {
       setBidStatus("error")
       setBidError(err instanceof Error ? err.message : "Failed to place bid")
-    }
-  }
-
-  // Handle Stripe payment
-  const handleStripePayment = async () => {
-    setPaymentLoading(true)
-    try {
-      const res = await fetch("/api/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ itemId: id }),
-      })
-      const data = await res.json()
-      if (data.url) {
-        window.location.href = data.url
-      } else {
-        alert(data.error || "Could not start checkout")
-      }
-    } catch {
-      alert("Payment failed. Please try again.")
-    } finally {
-      setPaymentLoading(false)
     }
   }
 
@@ -419,29 +402,54 @@ export default function ItemDetailPage() {
                       </p>
                     </div>
                   ) : (
-                    // Show payment buttons
-                    <div className="space-y-2">
+                    <div className="space-y-4">
+                      <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-900">
+                        <p className="font-semibold text-amber-950 mb-1">Credit cards</p>
+                        <p>{CARD_UNAVAILABLE_NOTICE}</p>
+                      </div>
+
+                      <div className="bg-white rounded-lg border border-emerald-200 p-4 text-sm">
+                        <div className="flex items-center gap-2 text-emerald-800 font-semibold mb-2">
+                          <Smartphone className="w-5 h-5" />
+                          Pay with Venmo
+                        </div>
+                        {getVenmoDisplay() ? (
+                          <>
+                            <p className="text-slate mb-1">
+                              Send <strong>${currentBid}</strong> to{" "}
+                              <strong className="text-midnight">{getVenmoDisplay()}</strong>
+                            </p>
+                            <p className="text-xs text-slate">
+                              In the memo, include: <strong>&quot;{item.title}&quot;</strong> and your name so we can match your payment.
+                            </p>
+                          </>
+                        ) : (
+                          <p className="text-slate">
+                            Email{" "}
+                            <a
+                              href={`mailto:${PAYMENT_CONTACT_EMAIL}`}
+                              className="text-violet font-semibold underline"
+                            >
+                              {PAYMENT_CONTACT_EMAIL}
+                            </a>{" "}
+                            for Venmo payment instructions.
+                          </p>
+                        )}
+                      </div>
+
                       <button
-                        onClick={handleStripePayment}
+                        onClick={handleCheckPayment}
                         disabled={paymentLoading}
-                        className="w-full bg-emerald-600 text-white py-3 px-4 rounded-lg hover:bg-emerald-700 transition flex items-center justify-center gap-2 disabled:opacity-50"
+                        className="w-full border-2 border-emerald-600 text-emerald-800 py-3 px-4 rounded-lg hover:bg-emerald-50 transition flex items-center justify-center gap-2 disabled:opacity-50 font-semibold"
                       >
                         {paymentLoading ? (
                           <Loader2 className="w-5 h-5 animate-spin" />
                         ) : (
                           <>
-                            <CreditCard className="w-5 h-5" />
-                            Pay ${currentBid} with Card
+                            <FileText className="w-5 h-5" />
+                            Show check payment instructions
                           </>
                         )}
-                      </button>
-                      <button
-                        onClick={handleCheckPayment}
-                        disabled={paymentLoading}
-                        className="w-full border border-gray-300 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-50 transition flex items-center justify-center gap-2 disabled:opacity-50"
-                      >
-                        <FileText className="w-5 h-5" />
-                        Pay by Check
                       </button>
                     </div>
                   )}

@@ -8,7 +8,7 @@ import Image from "next/image"
 import { 
   Gavel, Settings,
   TrendingUp, Package, ArrowRight, AlertCircle,
-  CheckCircle, CreditCard, Clock, Loader2
+  CheckCircle, Wallet, Clock, Loader2
 } from "lucide-react"
 import Header from "@/components/Header"
 
@@ -236,8 +236,8 @@ export default function DashboardPage() {
                             href={`/auction/${item.id}`}
                             className="btn-coral flex items-center gap-2"
                           >
-                            <CreditCard className="w-4 h-4" />
-                            Pay Now
+                            <Wallet className="w-4 h-4" />
+                            Pay (check / Venmo)
                           </Link>
                         )}
                       </div>

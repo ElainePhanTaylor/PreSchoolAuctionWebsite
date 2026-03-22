@@ -81,7 +81,7 @@ export function BidForm({ itemId, itemTitle, minBid, buyNowPrice, isWatching }: 
       if (!res.ok) {
         setError(data.error || "Failed to buy now")
       } else {
-        router.push(`/checkout/${itemId}`)
+        router.push(`/auction/${itemId}`)
       }
     } catch {
       setError("Something went wrong")

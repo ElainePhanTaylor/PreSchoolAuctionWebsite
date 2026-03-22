@@ -3,9 +3,20 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { stripe } from "@/lib/stripe"
+import { isCardCheckoutEnabled } from "@/lib/payment-options"
 
 export async function POST(request: Request) {
   try {
+    if (!isCardCheckoutEnabled()) {
+      return NextResponse.json(
+        {
+          error:
+            "Credit card checkout is temporarily unavailable. Please pay by check or Venmo — see the item page for instructions.",
+        },
+        { status: 403 }
+      )
+    }
+
     const session = await getServerSession(authOptions)
     
     if (!session?.user) {
