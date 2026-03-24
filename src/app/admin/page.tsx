@@ -7,7 +7,8 @@ import Link from "next/link"
 import { 
   Trees, Package, CreditCard, Users as UsersIcon,
   Settings, AlertCircle, Eye, Trash2, Edit3, X as XIcon,
-  Plus, Loader2, CheckCircle, Clock, DollarSign, Mail, Phone, Save, Upload
+  Plus, Loader2, CheckCircle, Clock, DollarSign, Mail, Phone, Save, Upload,
+  BarChart3
 } from "lucide-react"
 
 interface AuctionItem {
@@ -70,12 +71,36 @@ interface PaymentStats {
   expectedRevenue: number
 }
 
-type Tab = "overview" | "items" | "payments" | "users" | "settings"
+interface SummarySoldRow {
+  id: string
+  title: string
+  salePrice: number
+  winnerName: string | null
+  winnerUsername: string | null
+}
+
+interface SummaryUnsoldRow {
+  id: string
+  title: string
+  startingBid: number
+}
+
+interface AuctionSummaryData {
+  sold: SummarySoldRow[]
+  unsold: SummaryUnsoldRow[]
+  totals: {
+    soldCount: number
+    unsoldCount: number
+    totalSoldAmount: number
+  }
+}
+
+type Tab = "summary" | "items" | "payments" | "users" | "settings"
 
 export default function AdminPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
-  const [activeTab, setActiveTab] = useState<Tab>("items")
+  const [activeTab, setActiveTab] = useState<Tab>("summary")
   const [items, setItems] = useState<AuctionItem[]>([])
   const [loading, setLoading] = useState(true)
   const [endingAuction, setEndingAuction] = useState(false)
@@ -85,6 +110,9 @@ export default function AdminPage() {
   const [paymentStats, setPaymentStats] = useState<PaymentStats | null>(null)
   const [paymentsLoading, setPaymentsLoading] = useState(false)
   const [updatingPayment, setUpdatingPayment] = useState<string | null>(null)
+
+  const [auctionSummary, setAuctionSummary] = useState<AuctionSummaryData | null>(null)
+  const [summaryLoading, setSummaryLoading] = useState(false)
 
   // User management state
   const [users, setUsers] = useState<UserItem[]>([])
@@ -118,6 +146,26 @@ export default function AdminPage() {
     }
     fetchItems()
   }, [])
+
+  // Fetch auction summary (sold / unsold) when summary tab is active
+  useEffect(() => {
+    if (activeTab !== "summary") return
+
+    async function fetchSummary() {
+      setSummaryLoading(true)
+      try {
+        const res = await fetch("/api/admin/auction-summary")
+        if (res.ok) {
+          setAuctionSummary(await res.json())
+        }
+      } catch (error) {
+        console.error("Failed to fetch auction summary:", error)
+      } finally {
+        setSummaryLoading(false)
+      }
+    }
+    fetchSummary()
+  }, [activeTab])
 
   // Fetch payments when payments tab is active
   useEffect(() => {
@@ -376,6 +424,11 @@ export default function AdminPage() {
         if (itemsRes.ok) {
           setItems(await itemsRes.json())
         }
+        const sumRes = await fetch("/api/admin/auction-summary")
+        if (sumRes.ok) {
+          setAuctionSummary(await sumRes.json())
+        }
+        setActiveTab("summary")
       } else {
         alert(`Error: ${data.error}`)
       }
@@ -424,6 +477,7 @@ export default function AdminPage() {
   }
 
   const tabs = [
+    { id: "summary", label: "Summary", icon: BarChart3 },
     { id: "items", label: "Items", icon: Package },
     { id: "payments", label: "Payments", icon: CreditCard },
     { id: "users", label: "Users", icon: UsersIcon },
@@ -481,6 +535,120 @@ export default function AdminPage() {
 
           {/* Main Content */}
           <main className="flex-1">
+            {activeTab === "summary" && (
+              <div className="space-y-6">
+                <h1 className="text-2xl font-bold text-text">Auction results</h1>
+                <p className="text-text-muted text-sm -mt-4">
+                  Sold and unsold items after you end the auction. Sale price is the winning bid (or starting bid if needed).
+                </p>
+
+                {summaryLoading ? (
+                  <div className="card p-12 flex items-center justify-center gap-3">
+                    <Loader2 className="w-6 h-6 animate-spin text-violet" />
+                    <span className="text-text-muted">Loading summary…</span>
+                  </div>
+                ) : auctionSummary ? (
+                  <>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      <div className="card p-4 border-l-4 border-emerald-500">
+                        <p className="text-sm text-text-muted">Sold items</p>
+                        <p className="text-2xl font-bold text-text">{auctionSummary.totals.soldCount}</p>
+                      </div>
+                      <div className="card p-4 border-l-4 border-slate-400">
+                        <p className="text-sm text-text-muted">Unsold items</p>
+                        <p className="text-2xl font-bold text-text">{auctionSummary.totals.unsoldCount}</p>
+                      </div>
+                      <div className="card p-4 border-l-4 border-violet-500">
+                        <p className="text-sm text-text-muted">Total winning bids (sold)</p>
+                        <p className="text-2xl font-bold text-violet">
+                          ${auctionSummary.totals.totalSoldAmount.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="card overflow-hidden">
+                      <div className="px-4 py-3 bg-emerald-50 border-b border-emerald-100">
+                        <h2 className="font-bold text-emerald-900">Sold</h2>
+                      </div>
+                      {auctionSummary.sold.length === 0 ? (
+                        <p className="p-6 text-text-muted text-sm">No sold items yet. End the auction to set winners.</p>
+                      ) : (
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-sm">
+                            <thead className="bg-gray-50 text-left text-text-muted">
+                              <tr>
+                                <th className="p-3 font-medium">Item</th>
+                                <th className="p-3 font-medium">Winner</th>
+                                <th className="p-3 font-medium text-right">Sale price</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y">
+                              {auctionSummary.sold.map((row) => (
+                                <tr key={row.id} className="hover:bg-gray-50">
+                                  <td className="p-3">
+                                    <Link href={`/auction/${row.id}`} className="font-medium text-violet hover:underline">
+                                      {row.title}
+                                    </Link>
+                                  </td>
+                                  <td className="p-3 text-text-muted">
+                                    {row.winnerName || "—"}
+                                    {row.winnerUsername && (
+                                      <span className="text-silver"> @{row.winnerUsername}</span>
+                                    )}
+                                  </td>
+                                  <td className="p-3 text-right font-semibold tabular-nums">
+                                    ${row.salePrice.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="card overflow-hidden">
+                      <div className="px-4 py-3 bg-slate-100 border-b border-slate-200">
+                        <h2 className="font-bold text-slate-800">Unsold</h2>
+                      </div>
+                      {auctionSummary.unsold.length === 0 ? (
+                        <p className="p-6 text-text-muted text-sm">No unsold items.</p>
+                      ) : (
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-sm">
+                            <thead className="bg-gray-50 text-left text-text-muted">
+                              <tr>
+                                <th className="p-3 font-medium">Item</th>
+                                <th className="p-3 font-medium text-right">Starting bid</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y">
+                              {auctionSummary.unsold.map((row) => (
+                                <tr key={row.id} className="hover:bg-gray-50">
+                                  <td className="p-3">
+                                    <Link href={`/auction/${row.id}`} className="font-medium text-violet hover:underline">
+                                      {row.title}
+                                    </Link>
+                                  </td>
+                                  <td className="p-3 text-right font-medium tabular-nums text-text-muted">
+                                    ${row.startingBid.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  <div className="card p-8 text-center text-text-muted">
+                    Could not load summary. Refresh or try again.
+                  </div>
+                )}
+              </div>
+            )}
+
             {activeTab === "items" && (
               <div className="space-y-6">
                 <h1 className="text-2xl font-bold text-text">Manage Items</h1>
