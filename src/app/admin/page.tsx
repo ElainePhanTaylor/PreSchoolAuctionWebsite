@@ -8,7 +8,7 @@ import {
   Trees, Package, CreditCard, Users as UsersIcon,
   Settings, AlertCircle, Eye, Trash2, Edit3, X as XIcon,
   Plus, Loader2, CheckCircle, Clock, DollarSign, Mail, Phone, Save, Upload,
-  BarChart3
+  BarChart3, Send
 } from "lucide-react"
 
 interface AuctionItem {
@@ -1277,6 +1277,78 @@ export default function AdminPage() {
                   </button>
                 </div>
 
+                <div className="card p-6 border-2 border-violet-300 bg-white shadow-sm">
+                  <h2 className="text-lg font-bold text-text mb-2 flex items-center gap-2">
+                    <Mail className="w-5 h-5 text-violet" />
+                    Email all winners
+                  </h2>
+                  <p className="text-sm text-text-muted mb-4">
+                    Sends <strong>one email per winner</strong> (deduplicated by email). Your message is
+                    sent as plain text; you can use <code className="text-xs bg-pearl px-1 rounded">{"{{firstName}}"}</code>{" "}
+                    for the winner&apos;s first name. A table of their winning item(s) and bid amounts is
+                    automatically appended. Optional CC (comma-separated) — e.g. treasurer, yourself.
+                  </p>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-text mb-1">Subject</label>
+                      <input
+                        type="text"
+                        value={winnerEmailSubject}
+                        onChange={(e) => setWinnerEmailSubject(e.target.value)}
+                        className="input w-full max-w-2xl"
+                        placeholder="e.g. Important: SACNS auction payment"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-text mb-1">CC (optional)</label>
+                      <input
+                        type="text"
+                        value={winnerEmailCc}
+                        onChange={(e) => setWinnerEmailCc(e.target.value)}
+                        className="input w-full max-w-2xl"
+                        placeholder="e.g. elainph@gmail.com, shabnazy@gmail.com"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-text mb-1">Message</label>
+                      <textarea
+                        value={winnerEmailBody}
+                        onChange={(e) => setWinnerEmailBody(e.target.value)}
+                        className="input w-full min-h-[200px] resize-y font-sans text-sm"
+                        placeholder={`Hi {{firstName}},\n\nThank you for supporting the auction...\n\n(Your items will be listed below.)`}
+                      />
+                    </div>
+                    <p className="text-sm font-medium text-text">
+                      When you&apos;re ready, click <strong>Send</strong> below (you&apos;ll confirm once more).
+                    </p>
+                    <button
+                      type="button"
+                      onClick={handleSendWinnerEmails}
+                      disabled={
+                        winnerEmailLoading ||
+                        !winnerEmailSubject.trim() ||
+                        !winnerEmailBody.trim()
+                      }
+                      className="btn-primary w-full max-w-2xl py-4 text-lg font-bold shadow-md flex items-center justify-center gap-3 disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      {winnerEmailLoading ? (
+                        <>
+                          <Loader2 className="w-6 h-6 animate-spin" />
+                          Sending…
+                        </>
+                      ) : (
+                        <>
+                          <Send className="w-6 h-6" aria-hidden />
+                          Send email to all winners
+                        </>
+                      )}
+                    </button>
+                    {winnerEmailResult && (
+                      <p className="text-sm text-emerald-700 font-medium">{winnerEmailResult}</p>
+                    )}
+                  </div>
+                </div>
+
                 <div className="card p-6 border border-violet-200 bg-violet/5">
                   <h2 className="text-lg font-bold text-text mb-2 flex items-center gap-2">
                     <Mail className="w-5 h-5 text-violet" />
@@ -1310,71 +1382,6 @@ export default function AdminPage() {
                   {exportCsvMessage && (
                     <p className="text-sm text-emerald-700 mt-3 font-medium">{exportCsvMessage}</p>
                   )}
-                </div>
-
-                <div className="card p-6 border border-violet-200 bg-white">
-                  <h2 className="text-lg font-bold text-text mb-2 flex items-center gap-2">
-                    <Mail className="w-5 h-5 text-violet" />
-                    Email all winners
-                  </h2>
-                  <p className="text-sm text-text-muted mb-4">
-                    Sends <strong>one email per winner</strong> (deduplicated by email). Your message is
-                    sent as plain text; you can use <code className="text-xs bg-pearl px-1 rounded">{"{{firstName}}"}</code>{" "}
-                    for the winner&apos;s first name. A table of their winning item(s) and bid amounts is
-                    automatically appended. Optional CC (comma-separated) — e.g. treasurer, yourself.
-                  </p>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-text mb-1">Subject</label>
-                      <input
-                        type="text"
-                        value={winnerEmailSubject}
-                        onChange={(e) => setWinnerEmailSubject(e.target.value)}
-                        className="input w-full max-w-xl"
-                        placeholder="e.g. Important: SACNS auction payment"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-text mb-1">CC (optional)</label>
-                      <input
-                        type="text"
-                        value={winnerEmailCc}
-                        onChange={(e) => setWinnerEmailCc(e.target.value)}
-                        className="input w-full max-w-xl"
-                        placeholder="e.g. elainph@gmail.com, shabnazy@gmail.com"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-text mb-1">Message</label>
-                      <textarea
-                        value={winnerEmailBody}
-                        onChange={(e) => setWinnerEmailBody(e.target.value)}
-                        className="input w-full min-h-[200px] resize-y font-sans text-sm"
-                        placeholder={`Hi {{firstName}},\n\nThank you for supporting the auction...\n\n(Your items will be listed below.)`}
-                      />
-                    </div>
-                    <button
-                      type="button"
-                      onClick={handleSendWinnerEmails}
-                      disabled={winnerEmailLoading}
-                      className="bg-violet-600 text-white px-6 py-3 rounded-lg hover:bg-violet-700 transition-colors disabled:opacity-50 flex items-center gap-2"
-                    >
-                      {winnerEmailLoading ? (
-                        <>
-                          <Loader2 className="w-5 h-5 animate-spin" />
-                          Sending…
-                        </>
-                      ) : (
-                        <>
-                          <Mail className="w-5 h-5" />
-                          Send to all winners
-                        </>
-                      )}
-                    </button>
-                    {winnerEmailResult && (
-                      <p className="text-sm text-emerald-700 font-medium">{winnerEmailResult}</p>
-                    )}
-                  </div>
                 </div>
                 
                 <div className="card p-6 space-y-6">
