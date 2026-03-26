@@ -177,3 +177,42 @@ export async function sendPaymentConfirmationEmail(
     console.error("Failed to send payment confirmation email:", error)
   }
 }
+
+export async function sendTreasurerCsvExport(params: {
+  to: string
+  cc?: string[]
+  usersCsv: string
+  winnersCsv: string
+}) {
+  ensureEmailConfigured()
+  const { to, cc, usersCsv, winnersCsv } = params
+  const stamp = new Date().toISOString().slice(0, 10)
+
+  await resend.emails.send({
+    from: FROM_EMAIL,
+    replyTo: REPLY_TO,
+    to,
+    ...(cc && cc.length > 0 ? { cc: cc } : {}),
+    subject: `SACNS Auction export — ${stamp}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px;">
+        <p>Attached are two CSV files from the auction admin export:</p>
+        <ul>
+          <li><strong>auction-users.csv</strong> — all registered users (no passwords)</li>
+          <li><strong>auction-winners.csv</strong> — sold items with winner contact info and payment status</li>
+        </ul>
+        <p style="color: #64748b; font-size: 14px;">Generated ${stamp}</p>
+      </div>
+    `,
+    attachments: [
+      {
+        filename: `auction-users-${stamp}.csv`,
+        content: Buffer.from(usersCsv, "utf-8"),
+      },
+      {
+        filename: `auction-winners-${stamp}.csv`,
+        content: Buffer.from(winnersCsv, "utf-8"),
+      },
+    ],
+  })
+}

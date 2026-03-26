@@ -113,6 +113,8 @@ export default function AdminPage() {
 
   const [auctionSummary, setAuctionSummary] = useState<AuctionSummaryData | null>(null)
   const [summaryLoading, setSummaryLoading] = useState(false)
+  const [exportCsvLoading, setExportCsvLoading] = useState(false)
+  const [exportCsvMessage, setExportCsvMessage] = useState<string | null>(null)
 
   // User management state
   const [users, setUsers] = useState<UserItem[]>([])
@@ -398,6 +400,35 @@ export default function AdminPage() {
       }
     } catch {
       alert("Failed to delete item")
+    }
+  }
+
+  const handleSendCsvExport = async () => {
+    if (
+      !confirm(
+        "Email two CSV files to the treasurer?\n\n• auction-users — all registered users\n• auction-winners — sold items with winner address, phone, email, payment status"
+      )
+    ) {
+      return
+    }
+    setExportCsvLoading(true)
+    setExportCsvMessage(null)
+    try {
+      const res = await fetch("/api/admin/export-csv-email", { method: "POST" })
+      const data = await res.json()
+      if (res.ok) {
+        setExportCsvMessage(
+          data.counts
+            ? `${data.message} (${data.counts.users} users, ${data.counts.soldItems} sold items)`
+            : data.message
+        )
+      } else {
+        alert(data.error || "Failed to send export")
+      }
+    } catch {
+      alert("Failed to send export")
+    } finally {
+      setExportCsvLoading(false)
     }
   }
 
@@ -1197,6 +1228,41 @@ export default function AdminPage() {
                       "End Auction & Notify Winners"
                     )}
                   </button>
+                </div>
+
+                <div className="card p-6 border border-violet-200 bg-violet/5">
+                  <h2 className="text-lg font-bold text-text mb-2 flex items-center gap-2">
+                    <Mail className="w-5 h-5 text-violet" />
+                    Treasurer export (CSV by email)
+                  </h2>
+                  <p className="text-sm text-text-muted mb-4">
+                    Sends <strong>auction-users</strong> (all accounts, no passwords) and{" "}
+                    <strong>auction-winners</strong> (sold items + winner name, email, phone, full address, payment status)
+                    to the treasurer email. Optional CC via Railway env{" "}
+                    <code className="text-xs bg-white px-1 rounded">EXPORT_TREASURER_CC_EMAILS</code>{" "}
+                    (comma-separated).
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleSendCsvExport}
+                    disabled={exportCsvLoading}
+                    className="btn-primary flex items-center gap-2 disabled:opacity-50"
+                  >
+                    {exportCsvLoading ? (
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        Sending…
+                      </>
+                    ) : (
+                      <>
+                        <Mail className="w-5 h-5" />
+                        Email CSV export to treasurer
+                      </>
+                    )}
+                  </button>
+                  {exportCsvMessage && (
+                    <p className="text-sm text-emerald-700 mt-3 font-medium">{exportCsvMessage}</p>
+                  )}
                 </div>
                 
                 <div className="card p-6 space-y-6">
