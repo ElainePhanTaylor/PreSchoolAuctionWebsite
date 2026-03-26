@@ -116,6 +116,12 @@ export default function AdminPage() {
   const [exportCsvLoading, setExportCsvLoading] = useState(false)
   const [exportCsvMessage, setExportCsvMessage] = useState<string | null>(null)
 
+  const [winnerEmailSubject, setWinnerEmailSubject] = useState("")
+  const [winnerEmailBody, setWinnerEmailBody] = useState("")
+  const [winnerEmailCc, setWinnerEmailCc] = useState("")
+  const [winnerEmailLoading, setWinnerEmailLoading] = useState(false)
+  const [winnerEmailResult, setWinnerEmailResult] = useState<string | null>(null)
+
   // User management state
   const [users, setUsers] = useState<UserItem[]>([])
   const [usersLoading, setUsersLoading] = useState(false)
@@ -400,6 +406,47 @@ export default function AdminPage() {
       }
     } catch {
       alert("Failed to delete item")
+    }
+  }
+
+  const handleSendWinnerEmails = async () => {
+    if (!winnerEmailSubject.trim() || !winnerEmailBody.trim()) {
+      alert("Please enter a subject and message.")
+      return
+    }
+    if (
+      !confirm(
+        "Send this email to every unique winner (one email per person, with their items listed)?"
+      )
+    ) {
+      return
+    }
+    setWinnerEmailLoading(true)
+    setWinnerEmailResult(null)
+    try {
+      const res = await fetch("/api/admin/email-winners", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          subject: winnerEmailSubject,
+          body: winnerEmailBody,
+          cc: winnerEmailCc,
+        }),
+      })
+      const data = await res.json()
+      if (res.ok) {
+        let msg = `Sent ${data.sent} of ${data.totalRecipients} email(s).`
+        if (data.errors?.length) {
+          msg += ` Some failed: ${data.errors.slice(0, 3).join("; ")}`
+        }
+        setWinnerEmailResult(msg)
+      } else {
+        alert(data.error || "Failed to send")
+      }
+    } catch {
+      alert("Failed to send emails")
+    } finally {
+      setWinnerEmailLoading(false)
     }
   }
 
@@ -1263,6 +1310,71 @@ export default function AdminPage() {
                   {exportCsvMessage && (
                     <p className="text-sm text-emerald-700 mt-3 font-medium">{exportCsvMessage}</p>
                   )}
+                </div>
+
+                <div className="card p-6 border border-violet-200 bg-white">
+                  <h2 className="text-lg font-bold text-text mb-2 flex items-center gap-2">
+                    <Mail className="w-5 h-5 text-violet" />
+                    Email all winners
+                  </h2>
+                  <p className="text-sm text-text-muted mb-4">
+                    Sends <strong>one email per winner</strong> (deduplicated by email). Your message is
+                    sent as plain text; you can use <code className="text-xs bg-pearl px-1 rounded">{"{{firstName}}"}</code>{" "}
+                    for the winner&apos;s first name. A table of their winning item(s) and bid amounts is
+                    automatically appended. Optional CC (comma-separated) — e.g. treasurer, yourself.
+                  </p>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-text mb-1">Subject</label>
+                      <input
+                        type="text"
+                        value={winnerEmailSubject}
+                        onChange={(e) => setWinnerEmailSubject(e.target.value)}
+                        className="input w-full max-w-xl"
+                        placeholder="e.g. Important: SACNS auction payment"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-text mb-1">CC (optional)</label>
+                      <input
+                        type="text"
+                        value={winnerEmailCc}
+                        onChange={(e) => setWinnerEmailCc(e.target.value)}
+                        className="input w-full max-w-xl"
+                        placeholder="e.g. elainph@gmail.com, shabnazy@gmail.com"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-text mb-1">Message</label>
+                      <textarea
+                        value={winnerEmailBody}
+                        onChange={(e) => setWinnerEmailBody(e.target.value)}
+                        className="input w-full min-h-[200px] resize-y font-sans text-sm"
+                        placeholder={`Hi {{firstName}},\n\nThank you for supporting the auction...\n\n(Your items will be listed below.)`}
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleSendWinnerEmails}
+                      disabled={winnerEmailLoading}
+                      className="bg-violet-600 text-white px-6 py-3 rounded-lg hover:bg-violet-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+                    >
+                      {winnerEmailLoading ? (
+                        <>
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                          Sending…
+                        </>
+                      ) : (
+                        <>
+                          <Mail className="w-5 h-5" />
+                          Send to all winners
+                        </>
+                      )}
+                    </button>
+                    {winnerEmailResult && (
+                      <p className="text-sm text-emerald-700 font-medium">{winnerEmailResult}</p>
+                    )}
+                  </div>
                 </div>
                 
                 <div className="card p-6 space-y-6">
